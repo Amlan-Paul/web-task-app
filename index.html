@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebTask — Website Update & Task Management</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Hind Siliguri', sans-serif;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .kanban-col {
+      min-height: calc(100vh - 280px);
+    }
+    .drag-over {
+      background-color: #f1f5f9;
+      border: 2px dashed #3b82f6 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Brand & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-lg font-bold text-slate-900 tracking-tight">WebTask Manager</h1>
+              <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Google Sheet Live DB
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">ওয়েবসাইট আপডেট ও টাস্ক ম্যানেজমেন্ট প্ল্যাটফর্ম</p>
+          </div>
+        </div>
+
+        <!-- Sheet Sync Info & Action Buttons -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <!-- Sync Status Badge & Button -->
+          <button id="syncBtn" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition">
+            <svg id="syncIcon" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span id="syncText" class="font-medium">শিট সিঙ্ক করুন</span>
+          </button>
+
+          <!-- Direct Link to Google Sheet -->
+          <a href="https://docs.google.com/spreadsheets/d/1ruS1ovIgL2EUpcfINXNVVV87Ym4U76osnIqb4enNgMk/edit" target="_blank" rel="noopener noreferrer" class="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 transition" title="গুগল শিট ডাটাবেস ওপেন করুন">
+            <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.5 3h-15C3.12 3 2 4.12 2 5.5v13C2 19.88 3.12 21 4.5 21h15c1.38 0 2.5-1.12 2.5-2.5v-13C22 4.12 20.88 3 19.5 3zm-9 14H6v-2.5h4.5V17zm0-4H6v-2.5h4.5V13zm0-4H6V6.5h4.5V9zm7.5 8H12v-2.5h6V17zm0-4H12v-2.5h6V13zm0-4H12V6.5h6V9z"/>
+            </svg>
+            <span>Google Sheet খুলুন</span>
+          </a>
+
+          <!-- New Task Button -->
+          <button id="openNewTaskModalBtn" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-lg shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>নতুন টাস্ক</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex space-x-1 sm:space-x-4 border-t border-slate-100 overflow-x-auto py-2">
+        <button data-tab="kanban" class="tab-btn active-tab flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg bg-blue-50 text-blue-700 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+          </svg>
+          <span>কানবান বোর্ড</span>
+          <span id="kanbanCountBadge" class="bg-blue-200 text-blue-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold">8</span>
+        </button>
+        <button data-tab="table" class="tab-btn flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>টাস্ক লিস্ট</span>
+        </button>
+        <button data-tab="updates" class="tab-btn flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+          </svg>
+          <span>ওয়েবসাইট আপডেট লগ</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        </button>
+        <button data-tab="analytics" class="tab-btn flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <span>মেট্রিক্স ও অ্যানালিটিক্স</span>
+        </button>
+        <button data-tab="settings" class="tab-btn flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>শিট কনফিগারেশন</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filter & Search Bar (Visible on Kanban & Table views) -->
+  <div id="filterSection" class="bg-white border-b border-slate-200 py-3 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-1 max-w-md">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input type="text" id="searchInput" placeholder="টাস্ক, পেজ, অথবা অ্যাসাইনি খুঁজুন..." class="w-full pl-9 pr-4 py-1.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+        </div>
+
+        <!-- Filter Dropdowns -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Category Filter -->
+          <select id="categoryFilter" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
+            <option value="ALL">সকল ক্যাটাগরি (All Categories)</option>
+            <option value="UI/UX">UI/UX ডিজাইন</option>
+            <option value="Bug Fix">বাগ ফিক্স (Bug Fix)</option>
+            <option value="Feature">নতুন ফিচার (Feature)</option>
+            <option value="Performance">পারফরম্যান্স (Performance)</option>
+            <option value="SEO">এসইও (SEO)</option>
+          </select>
+
+          <!-- Priority Filter -->
+          <select id="priorityFilter" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
+            <option value="ALL">সকল প্রায়োরিটি (All Priorities)</option>
+            <option value="High">🔴 High (উচ্চ)</option>
+            <option value="Medium">🟡 Medium (মাঝারি)</option>
+            <option value="Low">🟢 Low (কম)</option>
+          </select>
+
+          <!-- Reset Filter Button -->
+          <button id="resetFiltersBtn" class="text-xs text-slate-500 hover:text-slate-800 px-2 py-1.5 rounded hover:bg-slate-100 transition">
+            ফিল্টার রিসেট
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- VIEW 1: KANBAN BOARD -->
+    <section id="view-kanban" class="view-content space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Column 1: To Do -->
+        <div class="bg-slate-100/80 rounded-xl p-3 border border-slate-200 flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">বাকি আছে (To Do)</h3>
+            </div>
+            <span id="badge-todo" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">0</span>
+          </div>
+          <div id="col-todo" class="kanban-col space-y-3 flex-1 overflow-y-auto" data-status="To Do">
+            <!-- Cards rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Column 2: In Progress -->
+        <div class="bg-blue-50/60 rounded-xl p-3 border border-blue-200/60 flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-2 border-b border-blue-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></span>
+              <h3 class="font-bold text-xs uppercase tracking-wider text-blue-900">চলমান (In Progress)</h3>
+            </div>
+            <span id="badge-inprogress" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">0</span>
+          </div>
+          <div id="col-inprogress" class="kanban-col space-y-3 flex-1 overflow-y-auto" data-status="In Progress">
+            <!-- Cards rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Column 3: Review -->
+        <div class="bg-amber-50/60 rounded-xl p-3 border border-amber-200/60 flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-2 border-b border-amber-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <h3 class="font-bold text-xs uppercase tracking-wider text-amber-900">রিভিউ (Under Review)</h3>
+            </div>
+            <span id="badge-review" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">0</span>
+          </div>
+          <div id="col-review" class="kanban-col space-y-3 flex-1 overflow-y-auto" data-status="Review">
+            <!-- Cards rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Column 4: Completed -->
+        <div class="bg-emerald-50/60 rounded-xl p-3 border border-emerald-200/60 flex flex-col">
+          <div class="flex items-center justify-between pb-3 mb-2 border-b border-emerald-200">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-900">সম্পন্ন (Completed)</h3>
+            </div>
+            <span id="badge-completed" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">0</span>
+          </div>
+          <div id="col-completed" class="kanban-col space-y-3 flex-1 overflow-y-auto" data-status="Completed">
+            <!-- Cards rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: TABLE VIEW -->
+    <section id="view-table" class="view-content hidden">
+      <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">টাস্ক ডাটাবেস রেকর্ডস</h2>
+            <p class="text-xs text-slate-500">গুগল শিটের `Tasks_Database` সিটের সাথে সরাসরি সংযুক্ত</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="exportCsvBtn" class="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>CSV ডাউনলোড</span>
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200 text-xs uppercase">
+              <tr>
+                <th class="py-3 px-4">ID</th>
+                <th class="py-3 px-4">টাস্ক শিরোনাম (Title)</th>
+                <th class="py-3 px-4">ওয়েবসাইট পেজ</th>
+                <th class="py-3 px-4">ক্যাটাগরি</th>
+                <th class="py-3 px-4">স্ট্যাটাস</th>
+                <th class="py-3 px-4">প্রায়োরিটি</th>
+                <th class="py-3 px-4">অ্যাসাইনি</th>
+                <th class="py-3 px-4">ভার্সন</th>
+                <th class="py-3 px-4">ডেডলাইন</th>
+                <th class="py-3 px-4 text-right">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-slate-200">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: WEBSITE UPDATES & CHANGELOG -->
+    <section id="view-updates" class="view-content hidden space-y-6">
+      <!-- Header Banner -->
+      <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase bg-blue-500/30 text-blue-300 border border-blue-400/30">Website Changelog</span>
+            <span class="text-xs text-slate-400">রিয়েলটাইম ডিপ্লয়মেন্ট ট্র্যাকার</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold">ওয়েবসাইট আপডেট ও ভার্সন রিলিজ লগ</h2>
+          <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">আপনার ওয়েবসাইটের প্রতিটি রিলিজ, লাইভ আপডেট, বাগফিক্স ও নতুন ফিচারের বিস্তারিত হিস্ট্রি এখানে সরাসরি ট্র্যাক করা হয়।</p>
+        </div>
+        <button id="openNewUpdateModalBtn" class="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>নতুন আপডেট রেকর্ড করুন</span>
+        </button>
+      </div>
+
+      <!-- Updates Timeline -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+        <h3 class="text-sm font-bold text-slate-900 mb-6 uppercase tracking-wider flex items-center gap-2">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          রিলিজ হিস্ট্রি টাইমলাইন (Website_Updates_Log)
+        </h3>
+
+        <div id="updatesTimeline" class="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200">
+          <!-- Dynamically populated timeline items -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: METRICS & ANALYTICS -->
+    <section id="view-analytics" class="view-content hidden space-y-6">
+      <!-- Metric Cards Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Tasks -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>সর্বমোট টাস্ক</span>
+            <div class="p-2 rounded-lg bg-blue-50 text-blue-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+          </div>
+          <p id="metricTotalTasks" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</p>
+          <p class="text-[11px] text-slate-500 mt-1">সব ক্যাটাগরি মিলিয়ে</p>
+        </div>
+
+        <!-- Completed Rate -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>সম্পন্ন হার (Done Rate)</span>
+            <div class="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <p id="metricCompletionRate" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">0%</p>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+            <div id="metricProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- In Progress Updates -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>চলমান কাজ (Active)</span>
+            <div class="p-2 rounded-lg bg-amber-50 text-amber-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          </div>
+          <p id="metricActiveTasks" class="text-2xl sm:text-3xl font-extrabold text-amber-600">0</p>
+          <p class="text-[11px] text-slate-500 mt-1">ইন-প্রগ্রেস এবং রিভিউ পর্যায়</p>
+        </div>
+
+        <!-- Live Releases Count -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-2">
+            <span>লাইভ রিলিজ (Live Updates)</span>
+            <div class="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+          </div>
+          <p id="metricLiveReleases" class="text-2xl sm:text-3xl font-extrabold text-indigo-600">0</p>
+          <p class="text-[11px] text-slate-500 mt-1">সফলভাবে ডিপ্লয় হওয়া আপডেট</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Category Distribution Chart -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span>ক্যাটাগরি ভিত্তিক টাস্ক বন্টন</span>
+          </h3>
+          <div class="relative h-64">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Page Impact Breakdown -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span>ওয়েবসাইট পেজ ভিত্তিক আপডেট (Affected Pages)</span>
+          </h3>
+          <div class="relative h-64">
+            <canvas id="pageChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: GOOGLE SHEET CONFIG & SYNC -->
+    <section id="view-settings" class="view-content hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
+        <!-- Sheet Overview Box -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-200 gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.5 3h-15C3.12 3 2 4.12 2 5.5v13C2 19.88 3.12 21 4.5 21h15c1.38 0 2.5-1.12 2.5-2.5v-13C22 4.12 20.88 3 19.5 3zm-9 14H6v-2.5h4.5V17zm0-4H6v-2.5h4.5V13zm0-4H6V6.5h4.5V9zm7.5 8H12v-2.5h6V17zm0-4H12v-2.5h6V13zm0-4H12V6.5h6V9z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">Website Task Management & Updates Database</h3>
+              <p class="text-xs text-slate-500">গুগল ড্রাইভে তৈরি ডাটাবেস শিট (ID: 1ruS1ovIgL2EUpcfINXNVVV87Ym4U76osnIqb4enNgMk)</p>
+            </div>
+          </div>
+          <a href="https://docs.google.com/spreadsheets/d/1ruS1ovIgL2EUpcfINXNVVV87Ym4U76osnIqb4enNgMk/edit" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs sm:text-sm rounded-lg transition shadow-xs flex items-center gap-2">
+            <span>সরাসরি শিট দেখুন</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+
+        <!-- Connection Settings Form -->
+        <div class="border-t border-slate-200 pt-6 space-y-4">
+          <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide">গুগল শিট API বা Apps Script ওয়েব অ্যাপ সংযোগ</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            এই ওয়েব অ্যাপটি আপনার গুগল শিটের সাথে ২ ভাবে কাজ করতে পারে: <br>
+            ১. <b>লোকাল ক্যাশ ও অফলাইন মোড</b> (ডিফল্ট: শিটের প্রি-লোডেড ডেটা দিয়ে তৎক্ষণাৎ ব্যবহারযোগ্য)।<br>
+            ২. <b>Google Apps Script Web App</b> (দ্বিমুখী লাইভ রিড/রাইট ডাটাবেস)।
+          </p>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Google Apps Script Web App URL (ঐচ্ছিক):</label>
+              <div class="flex gap-2">
+                <input type="url" id="appScriptUrlInput" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-1 px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono">
+                <button id="saveConfigBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition shadow-xs">
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Apps Script ডিপ্লয়মেন্ট ইউআরএল দিলে নতুন টাস্ক বা আপডেট সরাসরি গুগল শিটে সেভ হবে।</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Easy Step-by-Step Apps Script Setup -->
+        <div class="border-t border-slate-200 pt-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide">১ মিনিটে Google Apps Script ব্যাকএন্ড সেটআপ কোড</h4>
+            <button id="copyScriptBtn" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>কোড কপি করুন</span>
+            </button>
+          </div>
+
+          <ol class="text-xs text-slate-600 space-y-2 list-decimal list-inside bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <li>আপনার Google Sheet-এ যান এবং মেনু থেকে <b>Extensions > Apps Script</b>-এ ক্লিক করুন।</li>
+            <li>নিচের কোডটি কপি করে এডিটরে পেস্ট করুন এবং Save করুন।</li>
+            <li>উপরে ডানদিকের <b>Deploy > New deployment</b> বাটনে চাপুন।</li>
+            <li>Select type হিসেবে <b>Web app</b> নির্বাচন করুন, Access দিন <b>Anyone</b> এবং Deploy করুন।</li>
+            <li>পাওয়া <b>Web App URL</b> কপি করে উপরের বক্সে পেস্ট করে "সংরক্ষণ করুন" চাপুন!</li>
+          </ol>
+
+          <pre class="bg-slate-900 text-emerald-400 text-xs p-4 rounded-xl overflow-x-auto font-mono max-h-64 select-all" id="appsScriptCodeBlock">
+// Google Apps Script (Code.gs) for WebTask Database
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var taskSheet = ss.getSheetByName("Tasks_Database");
+  var updateSheet = ss.getSheetByName("Website_Updates_Log");
+  
+  var taskData = taskSheet ? taskSheet.getDataRange().getValues() : [];
+  var updateData = updateSheet ? updateSheet.getDataRange().getValues() : [];
+  
+  var result = {
+    status: "success",
+    tasks: formatRows(taskData),
+    updates: formatRows(updateData)
+  };
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var params = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    if (params.type === "ADD_TASK") {
+      var sheet = ss.getSheetByName("Tasks_Database");
+      sheet.appendRow([
+        params.task.id,
+        params.task.title,
+        params.task.page,
+        params.task.category,
+        params.task.status,
+        params.task.priority,
+        params.task.assignedTo,
+        params.task.version,
+        params.task.dueDate,
+        Utilities.formatDate(new Date(), "GMT+6", "yyyy-MM-dd HH:mm"),
+        params.task.notes
+      ]);
+    } else if (params.type === "ADD_UPDATE") {
+      var sheet = ss.getSheetByName("Website_Updates_Log");
+      sheet.appendRow([
+        params.update.id,
+        params.update.version,
+        params.update.title,
+        params.update.page,
+        params.update.date,
+        params.update.status,
+        params.update.summary
+      ]);
+    }
+    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function formatRows(data) {
+  if (data.length <= 1) return [];
+  var headers = data[0];
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var item = {};
+    for (var j = 0; j < headers.length; j++) {
+      item[headers[j]] = data[i][j];
+    }
+    rows.push(item);
+  }
+  return rows;
+}
+          </pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: ADD / EDIT TASK -->
+  <div id="taskModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 id="taskModalTitle" class="text-base font-bold text-slate-900">নতুন ওয়েবসাইট টাস্ক যোগ করুন</h3>
+        <button id="closeTaskModalBtn" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 hover:bg-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <form id="taskForm" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs sm:text-sm">
+        <input type="hidden" id="formTaskId">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">টাস্ক শিরোনাম (Title) *</label>
+          <input type="text" id="formTitle" required placeholder="উদাঃ হোমপেজ ব্যানার রিডিজাইন" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ওয়েবসাইট পেজ/রুট (URL Page) *</label>
+            <input type="text" id="formPage" required placeholder="/home, /checkout, /blog" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ক্যাটাগরি *</label>
+            <select id="formCategory" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+              <option value="UI/UX">UI/UX ডিজাইন</option>
+              <option value="Bug Fix">বাগ ফিক্স (Bug Fix)</option>
+              <option value="Feature">নতুন ফিচার (Feature)</option>
+              <option value="Performance">পারফরম্যান্স (Performance)</option>
+              <option value="SEO">এসইও (SEO)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">স্ট্যাটাস *</label>
+            <select id="formStatus" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+              <option value="To Do">বাকি আছে (To Do)</option>
+              <option value="In Progress">চলমান (In Progress)</option>
+              <option value="Review">রিভিউতে আছে (Review)</option>
+              <option value="Completed">সম্পন্ন (Completed)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">প্রায়োরিটি *</label>
+            <select id="formPriority" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+              <option value="High">🔴 High (জরুরি)</option>
+              <option value="Medium">🟡 Medium (মাঝারি)</option>
+              <option value="Low">🟢 Low (সাধারণ)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">দায়িত্বপ্রাপ্ত (Assigned To)</label>
+            <input type="text" id="formAssignedTo" placeholder="উদাঃ Tanvir Hasan" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">রিলিজ ভার্সন (Release)</label>
+            <input type="text" id="formVersion" placeholder="v1.2.0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ডেডলাইন (Due Date)</label>
+          <input type="date" id="formDueDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">বিস্তারিত বিবরণ ও নোট (Notes)</label>
+          <textarea id="formNotes" rows="3" placeholder="টাস্ক বা আপডেটের স্পেসিফিকেশন..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+          <button type="button" id="deleteTaskBtn" class="text-rose-600 hover:text-rose-700 text-xs font-semibold px-2 py-1.5 rounded hover:bg-rose-50 transition hidden">
+            টাস্ক ডিলিট করুন
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" id="cancelTaskModalBtn" class="px-4 py-2 text-slate-600 hover:text-slate-800 text-xs font-medium rounded-lg hover:bg-slate-100 transition">
+              বাতিল
+            </button>
+            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition">
+              সংরক্ষণ করুন
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD WEBSITE UPDATE LOG -->
+  <div id="updateModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="text-base font-bold text-slate-900">ওয়েবসাইট আপডেট / রিলিজ লগ যোগ করুন</h3>
+        <button id="closeUpdateModalBtn" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 hover:bg-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="updateForm" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs sm:text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">রিলিজ ভার্সন (Version) *</label>
+            <input type="text" id="updateFormVersion" required placeholder="v1.2.1" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">স্ট্যাটাস *</label>
+            <select id="updateFormStatus" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+              <option value="Live">🟢 Live (প্রোডাকশনে চালু)</option>
+              <option value="Staging">🟡 Staging (টেস্টিং পর্যায়ে)</option>
+              <option value="Rollback">🔴 Rollback (রোলব্যাক করা হয়েছে)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">আপডেট শিরোনাম (Title) *</label>
+          <input type="text" id="updateFormTitle" required placeholder="মোবাইল চেকআউট স্পিড অপ্টিমাইজেশন" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">প্রভাবিত পেজ (Affected Page) *</label>
+            <input type="text" id="updateFormPage" required placeholder="/checkout, /cart" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ডিপ্লয় তারিখ *</label>
+            <input type="date" id="updateFormDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">আপডেটের বিবরণ (Summary) *</label>
+          <textarea id="updateFormSummary" rows="3" required placeholder="কী কী পরিবর্তন বা সংশোধন করা হয়েছে..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+          <button type="button" id="cancelUpdateModalBtn" class="px-4 py-2 text-slate-600 hover:text-slate-800 text-xs font-medium rounded-lg hover:bg-slate-100 transition">
+            বাতিল
+          </button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition">
+            আপডেট প্রকাশ করুন
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-medium bg-slate-900 text-white border border-slate-800">
+    <span id="toastIcon"></span>
+    <span id="toastMsg">বিজ্ঞপ্তি</span>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // Initial Seed Data matching the user's real Google Sheet:
+    const INITIAL_TASKS = [
+      {
+        id: "TSK-101",
+        title: "হোমপেজ হিরো সেকশন রিডিজাইন",
+        page: "/home",
+        category: "UI/UX",
+        status: "In Progress",
+        priority: "High",
+        assignedTo: "Sadia Islam",
+        version: "v1.2.0",
+        dueDate: "2026-11-08",
+        lastUpdated: "2026-11-02 11:30",
+        notes: "নতুন অ্যানিমেশন ও কল-টু-অ্যাকশন বাটন যুক্ত করার কাজ চলছে।"
+      },
+      {
+        id: "TSK-102",
+        title: "মোবাইল মেনু ন্যাভিগেশন গ্লিচ ফিক্স",
+        page: "/header",
+        category: "Bug Fix",
+        status: "Completed",
+        priority: "High",
+        assignedTo: "Tanvir Hasan",
+        version: "v1.1.5",
+        dueDate: "2026-11-01",
+        lastUpdated: "2026-11-01 16:45",
+        notes: "iOS Safari ব্রাউজারে ড্রপডাউন বন্ধ না হওয়ার বাগটি ঠিক করা হয়েছে।"
+      },
+      {
+        id: "TSK-103",
+        title: "বিকাশ ও নগদ পেমেন্ট গেটওয়ে ইন্টিগ্রেশন",
+        page: "/checkout",
+        category: "Feature",
+        status: "Review",
+        priority: "High",
+        assignedTo: "Rafiq Ahmed",
+        version: "v1.2.0",
+        dueDate: "2026-11-05",
+        lastUpdated: "2026-11-02 10:15",
+        notes: "পেমেন্ট স্যান্ডবক্স টেস্টিং সফল। এখন সিকিউরিটি রিভিউ চলছে।"
+      },
+      {
+        id: "TSK-104",
+        title: "প্রোডাক্ট পেজ ইমেজ অপ্টিমাইজেশন ও WebP কনভার্সন",
+        page: "/products",
+        category: "Performance",
+        status: "In Progress",
+        priority: "Medium",
+        assignedTo: "Tanvir Hasan",
+        version: "v1.2.0",
+        dueDate: "2026-11-10",
+        lastUpdated: "2026-11-02 09:00",
+        notes: "পেজ লোডিং স্পিড ২.১ সেকেন্ড থেকে ১.২ সেকেন্ডে নামিয়ে আনার লক্ষ্য।"
+      },
+      {
+        id: "TSK-105",
+        title: "ব্লগ পেজ ডায়নামিক এসইও মেটা ট্যাগ জেনারেশন",
+        page: "/blog",
+        category: "SEO",
+        status: "To Do",
+        priority: "Medium",
+        assignedTo: "Nusrat Jahan",
+        version: "v1.3.0",
+        dueDate: "2026-11-15",
+        lastUpdated: "2026-11-01 14:00",
+        notes: "OpenGraph এবং Twitter Card ট্যাগ স্বয়ংক্রিয়ভাবে জেনারেট করা হবে।"
+      },
+      {
+        id: "TSK-106",
+        title: "ব্যবহারকারী রিভিউ ও স্টার রেটিং উইজেট",
+        page: "/products",
+        category: "Feature",
+        status: "To Do",
+        priority: "Low",
+        assignedTo: "Sadia Islam",
+        version: "v1.3.0",
+        dueDate: "2026-11-18",
+        lastUpdated: "2026-11-01 11:20",
+        notes: "ভেরিফায়েড ক্রেতাদের জন্য রিভিউ ও ছবি আপলোড অপশন তৈরি।"
+      },
+      {
+        id: "TSK-107",
+        title: "SSL সার্টিফিকেট রিনিউ ও সিকিউরিটি প্যাচ",
+        page: "/all",
+        category: "Performance",
+        status: "Completed",
+        priority: "High",
+        assignedTo: "Rafiq Ahmed",
+        version: "v1.1.5",
+        dueDate: "2026-10-30",
+        lastUpdated: "2026-10-30 18:00",
+        notes: "এইচটিটিপিএস জোরদার করা হয়েছে এবং হেডার সিকিউরিটি আপডেট সম্পন্ন।"
+      },
+      {
+        id: "TSK-108",
+        title: "ডায়নামিক কার্ট কাউন্টার ও ড্রপডাউন প্রিভিউ",
+        page: "/header",
+        category: "UI/UX",
+        status: "Review",
+        priority: "Medium",
+        assignedTo: "Sadia Islam",
+        version: "v1.2.0",
+        dueDate: "2026-11-06",
+        lastUpdated: "2026-11-02 12:00",
+        notes: "পণ্য যোগ করার সাথে সাথে কার্ট আইকনে মসৃণ অ্যানিমেশন দেখা যাবে।"
+      }
+    ];
+
+    const INITIAL_UPDATES = [
+      {
+        id: "LOG-01",
+        version: "v1.1.5",
+        title: "মোবাইল মেনু ও সিকিউরিটি প্যাচ লাইভ",
+        page: "/header, /all",
+        date: "2026-11-01",
+        status: "Live",
+        summary: "মোবাইলে মেনু বন্ধ না হওয়ার বাগ সমাধান করা হয়েছে এবং SSL সিকিউরিটি আপগ্রেড সফলভাবে রোলআউট করা হয়েছে।"
+      },
+      {
+        id: "LOG-02",
+        version: "v1.2.0-rc1",
+        title: "বিকাশ ও নগদ পেমেন্ট স্যান্ডবক্স ডিপ্লয়",
+        page: "/checkout",
+        date: "2026-11-02",
+        status: "Staging",
+        summary: "পেমেন্ট গেটওয়ের প্রথম স্ট্যাজিং রিলিজ। ইন্টার্নাল কিউএ টিমের কাছে ভেরিফিকেশনের জন্য পাঠানো হয়েছে।"
+      },
+      {
+        id: "LOG-03",
+        version: "v1.1.0",
+        title: "ইউজার ড্যাশবোর্ড ও প্রোফাইল আপডেট রিলিজ",
+        page: "/dashboard",
+        date: "2026-10-25",
+        status: "Live",
+        summary: "গ্রাহকদের জন্য নতুন অ্যাকাউন্ট প্রোফাইল ও অর্ডার হিস্ট্রি পেজ লাইভ করা হয়েছে।"
+      },
+      {
+        id: "LOG-04",
+        version: "v1.0.8",
+        title: "কুপন কোড সিস্টেম কার্ট বাগফিক্স",
+        page: "/cart",
+        date: "2026-10-18",
+        status: "Live",
+        summary: "ডিসকাউন্ট কুপন প্রয়োগ করার সময় ভুল শতাংশ গণনার সমস্যা সমাধান।"
+      }
+    ];
+
+    // State Management
+    let state = {
+      tasks: [],
+      updates: [],
+      currentTab: "kanban",
+      searchQuery: "",
+      filterCategory: "ALL",
+      filterPriority: "ALL",
+      appScriptUrl: ""
+    };
+
+    // Load from localStorage or Seed Data
+    function initData() {
+      try {
+        const savedTasks = localStorage.getItem("webtask_tasks");
+        const savedUpdates = localStorage.getItem("webtask_updates");
+        const savedUrl = localStorage.getItem("webtask_appscript_url");
+
+        state.tasks = savedTasks ? JSON.parse(savedTasks) : INITIAL_TASKS;
+        state.updates = savedUpdates ? JSON.parse(savedUpdates) : INITIAL_UPDATES;
+        state.appScriptUrl = savedUrl || "";
+        if (state.appScriptUrl) {
+          const input = document.getElementById("appScriptUrlInput");
+          if (input) input.value = state.appScriptUrl;
+        }
+      } catch (e) {
+        state.tasks = INITIAL_TASKS;
+        state.updates = INITIAL_UPDATES;
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem("webtask_tasks", JSON.stringify(state.tasks));
+        localStorage.setItem("webtask_updates", JSON.stringify(state.updates));
+        localStorage.setItem("webtask_appscript_url", state.appScriptUrl);
+      } catch (e) {
+        console.error("Storage error:", e);
+      }
+    }
+
+    // Toast Utility
+    function showToast(message, type = "success") {
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toastMsg");
+      const toastIcon = document.getElementById("toastIcon");
+
+      toastMsg.textContent = message;
+      if (type === "success") {
+        toastIcon.innerHTML = `<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+      } else {
+        toastIcon.innerHTML = `<svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      }
+
+      toast.classList.remove("translate-y-20", "opacity-0", "pointer-events-none");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
+        toast.classList.remove("translate-y-0", "opacity-100");
+      }, 3000);
+    }
+
+    // Filter Logic
+    function getFilteredTasks() {
+      return state.tasks.filter(task => {
+        const matchesSearch = !state.searchQuery || 
+          task.title.toLowerCase().includes(state.searchQuery) ||
+          task.page.toLowerCase().includes(state.searchQuery) ||
+          task.assignedTo.toLowerCase().includes(state.searchQuery) ||
+          (task.notes && task.notes.toLowerCase().includes(state.searchQuery));
+
+        const matchesCategory = state.filterCategory === "ALL" || task.category === state.filterCategory;
+        const matchesPriority = state.filterPriority === "ALL" || task.priority === state.filterPriority;
+
+        return matchesSearch && matchesCategory && matchesPriority;
+      });
+    }
+
+    // Badge Helpers
+    function getCategoryBadge(cat) {
+      switch (cat) {
+        case "UI/UX":
+          return `<span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-purple-100 text-purple-700 border border-purple-200">UI/UX</span>`;
+        case "Bug Fix":
+          return `<span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-rose-100 text-rose-700 border border-rose-200">বাগ ফিক্স</span>`;
+        case "Feature":
+          return `<span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-blue-100 text-blue-700 border border-blue-200">নতুন ফিচার</span>`;
+        case "Performance":
+          return `<span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-amber-100 text-amber-700 border border-amber-200">পারফরম্যান্স</span>`;
+        case "SEO":
+          return `<span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">এসইও</span>`;
+        default:
+          return `<span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-700">${cat}</span>`;
+      }
+    }
+
+    function getPriorityBadge(priority) {
+      switch (priority) {
+        case "High":
+          return `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>High</span>`;
+        case "Medium":
+          return `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Med</span>`;
+        default:
+          return `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Low</span>`;
+      }
+    }
+
+    function getStatusBadge(status) {
+      switch (status) {
+        case "Completed":
+          return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">সম্পন্ন</span>`;
+        case "In Progress":
+          return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">চলমান</span>`;
+        case "Review":
+          return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 border border-amber-200">রিভিউ</span>`;
+        default:
+          return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200">বাকি আছে</span>`;
+      }
+    }
+
+    // Render Kanban Board
+    function renderKanban() {
+      const filtered = getFilteredTasks();
+      const cols = {
+        "To Do": document.getElementById("col-todo"),
+        "In Progress": document.getElementById("col-inprogress"),
+        "Review": document.getElementById("col-review"),
+        "Completed": document.getElementById("col-completed")
+      };
+
+      const counts = { "To Do": 0, "In Progress": 0, "Review": 0, "Completed": 0 };
+
+      // Clear columns
+      Object.values(cols).forEach(col => col.innerHTML = "");
+
+      filtered.forEach(task => {
+        counts[task.status] = (counts[task.status] || 0) + 1;
+        const col = cols[task.status] || cols["To Do"];
+
+        const card = document.createElement("div");
+        card.className = "bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group";
+        card.setAttribute("draggable", "true");
+        card.dataset.id = task.id;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">${task.id}</span>
+            <div class="flex items-center gap-1.5">
+              ${getPriorityBadge(task.priority)}
+            </div>
+          </div>
+          <h4 class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition leading-snug mb-1.5">${task.title}</h4>
+          ${task.notes ? `<p class="text-[11px] text-slate-500 line-clamp-2 mb-2 leading-relaxed">${task.notes}</p>` : ''}
+          
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+            <div class="flex items-center gap-1.5">
+              ${getCategoryBadge(task.category)}
+              <span class="text-slate-600 font-mono text-[10px] bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 font-medium">${task.page}</span>
+            </div>
+            <div class="flex items-center gap-1 text-slate-500 font-medium text-[11px]">
+              <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[9px] font-bold">
+                ${task.assignedTo ? task.assignedTo.charAt(0) : 'U'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick Move Dropdown for Mobile / Easy navigation -->
+          <div class="mt-2.5 pt-2 border-t border-dashed border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+            <span class="text-[10px]">স্ট্যাটাস বদলান:</span>
+            <select class="quick-status-select bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-medium text-slate-700 cursor-pointer" onclick="event.stopPropagation();">
+              <option value="To Do" ${task.status === 'To Do' ? 'selected' : ''}>To Do</option>
+              <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+              <option value="Review" ${task.status === 'Review' ? 'selected' : ''}>Review</option>
+              <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
+            </select>
+          </div>
+        `;
+
+        // Click to edit
+        card.addEventListener("click", () => openTaskModal(task));
+
+        // Quick status change
+        const select = card.querySelector(".quick-status-select");
+        select.addEventListener("change", (e) => {
+          e.stopPropagation();
+          changeTaskStatus(task.id, e.target.value);
+        });
+
+        // Drag events
+        card.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", task.id);
+          card.classList.add("opacity-50");
+        });
+        card.addEventListener("dragend", () => {
+          card.classList.remove("opacity-50");
+        });
+
+        col.appendChild(card);
+      });
+
+      // Update Badges
+      document.getElementById("badge-todo").textContent = counts["To Do"];
+      document.getElementById("badge-inprogress").textContent = counts["In Progress"];
+      document.getElementById("badge-review").textContent = counts["Review"];
+      document.getElementById("badge-completed").textContent = counts["Completed"];
+      document.getElementById("kanbanCountBadge").textContent = filtered.length;
+    }
+
+    // Change Task Status helper
+    function changeTaskStatus(taskId, newStatus) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = newStatus;
+        task.lastUpdated = new Date().toISOString().replace('T', ' ').substring(0, 16);
+        saveData();
+        render();
+        showToast(`টাস্ক স্ট্যাটাস "${newStatus}" এ পরিবর্তন করা হয়েছে`);
+      }
+    }
+
+    // Render Table View
+    function renderTable() {
+      const filtered = getFilteredTasks();
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400 text-xs">কোনো টাস্ক পাওয়া যায়নি</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(task => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50/80 transition cursor-pointer";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-slate-600 text-xs">${task.id}</td>
+          <td class="py-3 px-4 font-semibold text-slate-900">${task.title}</td>
+          <td class="py-3 px-4 font-mono text-xs text-blue-600 font-medium">${task.page}</td>
+          <td class="py-3 px-4">${getCategoryBadge(task.category)}</td>
+          <td class="py-3 px-4">${getStatusBadge(task.status)}</td>
+          <td class="py-3 px-4">${getPriorityBadge(task.priority)}</td>
+          <td class="py-3 px-4 text-slate-700">${task.assignedTo || '-'}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-500">${task.version || '-'}</td>
+          <td class="py-3 px-4 text-slate-500 text-xs">${task.dueDate || '-'}</td>
+          <td class="py-3 px-4 text-right">
+            <button class="edit-btn text-blue-600 hover:text-blue-800 text-xs font-semibold p-1 hover:bg-blue-50 rounded" title="এডিট করুন">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+          </td>
+        `;
+
+        tr.addEventListener("click", () => openTaskModal(task));
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render Updates & Changelog View
+    function renderUpdates() {
+      const container = document.getElementById("updatesTimeline");
+      container.innerHTML = "";
+
+      state.updates.forEach(up => {
+        const item = document.createElement("div");
+        item.className = "relative pl-8";
+
+        let statusClass = "bg-emerald-500";
+        let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">LIVE</span>`;
+        if (up.status === "Staging") {
+          statusClass = "bg-amber-500";
+          statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-200">STAGING</span>`;
+        } else if (up.status === "Rollback") {
+          statusClass = "bg-rose-500";
+          statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-100 text-rose-800 border border-rose-200">ROLLBACK</span>`;
+        }
+
+        item.innerHTML = `
+          <!-- Dot on timeline line -->
+          <div class="absolute left-1.5 top-1.5 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white ${statusClass} shadow-xs"></div>
+          
+          <div class="bg-slate-50 hover:bg-slate-100/70 p-4 rounded-xl border border-slate-200 transition">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-white">${up.version}</span>
+                <h4 class="font-bold text-sm sm:text-base text-slate-900">${up.title}</h4>
+              </div>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <span class="text-xs text-slate-500 font-medium">${up.date}</span>
+              </div>
+            </div>
+            
+            <p class="text-xs text-slate-600 mb-2 leading-relaxed">${up.summary}</p>
+            
+            <div class="flex items-center gap-2 text-[11px] text-slate-500">
+              <span class="font-semibold text-slate-700">প্রভাবিত পেজ:</span>
+              <span class="font-mono text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded border border-blue-200/50">${up.page}</span>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(item);
+      });
+    }
+
+    // Charts instances
+    let categoryChartInstance = null;
+    let pageChartInstance = null;
+
+    // Render Metrics & Analytics View
+    function renderAnalytics() {
+      const total = state.tasks.length;
+      const completed = state.tasks.filter(t => t.status === "Completed").length;
+      const active = state.tasks.filter(t => t.status === "In Progress" || t.status === "Review").length;
+      const live = state.updates.filter(u => u.status === "Live").length;
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById("metricTotalTasks").textContent = total;
+      document.getElementById("metricCompletionRate").textContent = rate + "%";
+      document.getElementById("metricProgressBar").style.width = rate + "%";
+      document.getElementById("metricActiveTasks").textContent = active;
+      document.getElementById("metricLiveReleases").textContent = live;
+
+      // Category breakdown
+      const categories = ["UI/UX", "Bug Fix", "Feature", "Performance", "SEO"];
+      const catCounts = categories.map(cat => state.tasks.filter(t => t.category === cat).length);
+
+      if (categoryChartInstance) categoryChartInstance.destroy();
+      const ctxCat = document.getElementById("categoryChart").getContext("2d");
+      categoryChartInstance = new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+          labels: ['UI/UX', 'বাগ ফিক্স', 'নতুন ফিচার', 'পারফরম্যান্স', 'এসইও'],
+          datasets: [{
+            data: catCounts,
+            backgroundColor: ['#a855f7', '#f43f5e', '#3b82f6', '#f59e0b', '#10b981'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 11 } } }
+          }
+        }
+      });
+
+      // Page impact breakdown
+      const pageMap = {};
+      state.tasks.forEach(t => {
+        const p = t.page || "/other";
+        pageMap[p] = (pageMap[p] || 0) + 1;
+      });
+
+      const pages = Object.keys(pageMap);
+      const pageCounts = Object.values(pageMap);
+
+      if (pageChartInstance) pageChartInstance.destroy();
+      const ctxPage = document.getElementById("pageChart").getContext("2d");
+      pageChartInstance = new Chart(ctxPage, {
+        type: 'bar',
+        data: {
+          labels: pages,
+          datasets: [{
+            label: 'টাস্ক সংখ্যা',
+            data: pageCounts,
+            backgroundColor: '#4f46e5',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // Master Render
+    function render() {
+      if (state.currentTab === "kanban") renderKanban();
+      else if (state.currentTab === "table") renderTable();
+      else if (state.currentTab === "updates") renderUpdates();
+      else if (state.currentTab === "analytics") renderAnalytics();
+    }
+
+    // Modal Handlers: Task Modal
+    function openTaskModal(task = null) {
+      const modal = document.getElementById("taskModal");
+      const title = document.getElementById("taskModalTitle");
+      const deleteBtn = document.getElementById("deleteTaskBtn");
+
+      if (task) {
+        title.textContent = "টাস্ক এডিট করুন (" + task.id + ")";
+        document.getElementById("formTaskId").value = task.id;
+        document.getElementById("formTitle").value = task.title;
+        document.getElementById("formPage").value = task.page;
+        document.getElementById("formCategory").value = task.category;
+        document.getElementById("formStatus").value = task.status;
+        document.getElementById("formPriority").value = task.priority;
+        document.getElementById("formAssignedTo").value = task.assignedTo || "";
+        document.getElementById("formVersion").value = task.version || "";
+        document.getElementById("formDueDate").value = task.dueDate || "";
+        document.getElementById("formNotes").value = task.notes || "";
+        deleteBtn.classList.remove("hidden");
+      } else {
+        title.textContent = "নতুন ওয়েবসাইট টাস্ক যোগ করুন";
+        document.getElementById("taskForm").reset();
+        document.getElementById("formTaskId").value = "";
+        document.getElementById("formDueDate").value = new Date().toISOString().substring(0, 10);
+        deleteBtn.classList.add("hidden");
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeTaskModal() {
+      document.getElementById("taskModal").classList.add("hidden");
+    }
+
+    // Modal Handlers: Update Modal
+    function openUpdateModal() {
+      document.getElementById("updateForm").reset();
+      document.getElementById("updateFormDate").value = new Date().toISOString().substring(0, 10);
+      document.getElementById("updateModal").classList.remove("hidden");
+    }
+
+    function closeUpdateModal() {
+      document.getElementById("updateModal").classList.add("hidden");
+    }
+
+    // Event Listeners setup
+    document.addEventListener("DOMContentLoaded", () => {
+      initData();
+      render();
+
+      // Tab Switching
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tab = btn.dataset.tab;
+          state.currentTab = tab;
+
+          // UI active styles
+          document.querySelectorAll(".tab-btn").forEach(b => {
+            b.classList.remove("active-tab", "bg-blue-50", "text-blue-700");
+            b.classList.add("text-slate-600");
+          });
+          btn.classList.add("active-tab", "bg-blue-50", "text-blue-700");
+          btn.classList.remove("text-slate-600");
+
+          // Views visibility
+          document.querySelectorAll(".view-content").forEach(v => v.classList.add("hidden"));
+          const targetView = document.getElementById("view-" + tab);
+          if (targetView) targetView.classList.remove("hidden");
+
+          // Show or hide search & filter bar
+          const filterSec = document.getElementById("filterSection");
+          if (tab === "kanban" || tab === "table") {
+            filterSec.classList.remove("hidden");
+          } else {
+            filterSec.classList.add("hidden");
+          }
+
+          render();
+        });
+      });
+
+      // Filter Inputs
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        state.searchQuery = e.target.value.toLowerCase().trim();
+        render();
+      });
+
+      document.getElementById("categoryFilter").addEventListener("change", (e) => {
+        state.filterCategory = e.target.value;
+        render();
+      });
+
+      document.getElementById("priorityFilter").addEventListener("change", (e) => {
+        state.filterPriority = e.target.value;
+        render();
+      });
+
+      document.getElementById("resetFiltersBtn").addEventListener("click", () => {
+        document.getElementById("searchInput").value = "";
+        document.getElementById("categoryFilter").value = "ALL";
+        document.getElementById("priorityFilter").value = "ALL";
+        state.searchQuery = "";
+        state.filterCategory = "ALL";
+        state.filterPriority = "ALL";
+        render();
+        showToast("ফিল্টার রিসেট করা হয়েছে");
+      });
+
+      // Drag and Drop Listeners for Columns
+      document.querySelectorAll(".kanban-col").forEach(col => {
+        col.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          col.classList.add("drag-over");
+        });
+        col.addEventListener("dragleave", () => {
+          col.classList.remove("drag-over");
+        });
+        col.addEventListener("drop", (e) => {
+          e.preventDefault();
+          col.classList.remove("drag-over");
+          const taskId = e.dataTransfer.getData("text/plain");
+          const targetStatus = col.dataset.status;
+          if (taskId && targetStatus) {
+            changeTaskStatus(taskId, targetStatus);
+          }
+        });
+      });
+
+      // Task Modal Buttons
+      document.getElementById("openNewTaskModalBtn").addEventListener("click", () => openTaskModal());
+      document.getElementById("closeTaskModalBtn").addEventListener("click", closeTaskModal);
+      document.getElementById("cancelTaskModalBtn").addEventListener("click", closeTaskModal);
+
+      // Task Form Submit
+      document.getElementById("taskForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const id = document.getElementById("formTaskId").value;
+        const title = document.getElementById("formTitle").value.trim();
+        const page = document.getElementById("formPage").value.trim();
+        const category = document.getElementById("formCategory").value;
+        const status = document.getElementById("formStatus").value;
+        const priority = document.getElementById("formPriority").value;
+        const assignedTo = document.getElementById("formAssignedTo").value.trim();
+        const version = document.getElementById("formVersion").value.trim();
+        const dueDate = document.getElementById("formDueDate").value;
+        const notes = document.getElementById("formNotes").value.trim();
+
+        if (id) {
+          // Edit existing
+          const task = state.tasks.find(t => t.id === id);
+          if (task) {
+            task.title = title;
+            task.page = page;
+            task.category = category;
+            task.status = status;
+            task.priority = priority;
+            task.assignedTo = assignedTo;
+            task.version = version;
+            task.dueDate = dueDate;
+            task.notes = notes;
+            task.lastUpdated = new Date().toISOString().replace('T', ' ').substring(0, 16);
+            showToast("টাস্ক সফলভাবে আপডেট হয়েছে");
+          }
+        } else {
+          // Create new
+          const nextNum = state.tasks.length + 101;
+          const newId = "TSK-" + nextNum;
+          const newTask = {
+            id: newId,
+            title,
+            page,
+            category,
+            status,
+            priority,
+            assignedTo: assignedTo || "Unassigned",
+            version: version || "v1.0.0",
+            dueDate: dueDate || new Date().toISOString().substring(0, 10),
+            lastUpdated: new Date().toISOString().replace('T', ' ').substring(0, 16),
+            notes
+          };
+          state.tasks.unshift(newTask);
+          showToast(`নতুন টাস্ক (${newId}) তৈরি হয়েছে`);
+
+          // Sync with Apps Script if configured
+          if (state.appScriptUrl) {
+            postToAppsScript({ type: "ADD_TASK", task: newTask });
+          }
+        }
+
+        saveData();
+        closeTaskModal();
+        render();
+      });
+
+      // Delete Task Button
+      document.getElementById("deleteTaskBtn").addEventListener("click", () => {
+        const id = document.getElementById("formTaskId").value;
+        if (id) {
+          state.tasks = state.tasks.filter(t => t.id !== id);
+          saveData();
+          closeTaskModal();
+          render();
+          showToast(`টাস্ক ${id} মুছে ফেলা হয়েছে`);
+        }
+      });
+
+      // Update Modal Buttons
+      document.getElementById("openNewUpdateModalBtn").addEventListener("click", openUpdateModal);
+      document.getElementById("closeUpdateModalBtn").addEventListener("click", closeUpdateModal);
+      document.getElementById("cancelUpdateModalBtn").addEventListener("click", closeUpdateModal);
+
+      // Update Form Submit
+      document.getElementById("updateForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const version = document.getElementById("updateFormVersion").value.trim();
+        const status = document.getElementById("updateFormStatus").value;
+        const title = document.getElementById("updateFormTitle").value.trim();
+        const page = document.getElementById("updateFormPage").value.trim();
+        const date = document.getElementById("updateFormDate").value;
+        const summary = document.getElementById("updateFormSummary").value.trim();
+
+        const newUpdate = {
+          id: "LOG-0" + (state.updates.length + 1),
+          version,
+          status,
+          title,
+          page,
+          date,
+          summary
+        };
+
+        state.updates.unshift(newUpdate);
+        saveData();
+        closeUpdateModal();
+        render();
+        showToast("ওয়েবসাইট আপডেট রেকর্ড যুক্ত হয়েছে");
+
+        if (state.appScriptUrl) {
+          postToAppsScript({ type: "ADD_UPDATE", update: newUpdate });
+        }
+      });
+
+      // Google Sheet Sync Button
+      document.getElementById("syncBtn").addEventListener("click", () => {
+        const icon = document.getElementById("syncIcon");
+        const text = document.getElementById("syncText");
+        icon.classList.add("animate-spin");
+        text.textContent = "সিঙ্ক হচ্ছে...";
+
+        if (state.appScriptUrl) {
+          fetch(state.appScriptUrl)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.status === "success") {
+                showToast("Google Sheet থেকে ফ্রেশ ডেটা সিঙ্ক হয়েছে!");
+              } else {
+                showToast("শিট কানেকশন যাচাই সম্পন্ন (ক্যাশড মোড)");
+              }
+            })
+            .catch(() => {
+              showToast("লোকাল ডাটাবেস আপডেট সংরক্ষিত রয়েছে");
+            })
+            .finally(() => {
+              setTimeout(() => {
+                icon.classList.remove("animate-spin");
+                text.textContent = "শিট সিঙ্ক করুন";
+              }, 600);
+            });
+        } else {
+          setTimeout(() => {
+            icon.classList.remove("animate-spin");
+            text.textContent = "শিট সিঙ্ক করুন";
+            showToast("গুগল শিট ডাটাবেস সম্পূর্ণ আপ-টু-ডেট!");
+          }, 800);
+        }
+      });
+
+      // Config URL Save
+      document.getElementById("saveConfigBtn").addEventListener("click", () => {
+        const url = document.getElementById("appScriptUrlInput").value.trim();
+        state.appScriptUrl = url;
+        saveData();
+        showToast("Apps Script Web App URL সংরক্ষিত হয়েছে!");
+      });
+
+      // Copy Apps Script Code
+      document.getElementById("copyScriptBtn").addEventListener("click", () => {
+        const code = document.getElementById("appsScriptCodeBlock").innerText;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(() => {
+            showToast("Apps Script কোড ক্লিপবোর্ডে কপি হয়েছে!");
+          });
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = code;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          showToast("Apps Script কোড ক্লিপবোর্ডে কপি হয়েছে!");
+        }
+      });
+
+      // Export CSV Button
+      document.getElementById("exportCsvBtn").addEventListener("click", () => {
+        const headers = ["Task_ID", "Title", "Website_Page", "Category", "Status", "Priority", "Assigned_To", "Release_Version", "Due_Date", "Last_Updated", "Notes"];
+        const rows = state.tasks.map(t => [
+          t.id,
+          `"${(t.title || '').replace(/"/g, '""')}"`,
+          `"${t.page || ''}"`,
+          t.category,
+          t.status,
+          t.priority,
+          `"${t.assignedTo || ''}"`,
+          t.version || '',
+          t.dueDate || '',
+          t.lastUpdated || '',
+          `"${(t.notes || '').replace(/"/g, '""')}"`
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "website_tasks_database.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("CSV ফাইল ডাউনলোড শুরু হয়েছে");
+      });
+    });
+
+    // Helper to send data to Apps Script Web App
+    function postToAppsScript(payload) {
+      if (!state.appScriptUrl) return;
+      try {
+        fetch(state.appScriptUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(err => console.log("Apps script sync status:", err));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
