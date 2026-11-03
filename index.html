@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>WebTask — Website Update & Task Management</title>
+  <title>WebTask — Supabase Website Update & Task Management</title>
   
-  <!-- Tailwind CSS & Chart.js -->
+  <!-- Tailwind CSS, Chart.js & Supabase JS v2 -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
   
   <!-- Fonts: Inter & Hind Siliguri -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -106,24 +107,24 @@
 
   <!-- ================= STRICT AUTH GATE: CLEAN LOGIN SCREEN (NO HORIZONTAL SCROLL) ================= -->
   <div id="authScreen" class="fixed inset-0 z-[90] w-full max-w-full overflow-x-hidden overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 flex items-center justify-center p-3 sm:p-6">
-    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-md mx-auto overflow-hidden flex flex-col max-h-[92vh] my-auto">
+    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 w-full max-w-md mx-auto overflow-hidden flex flex-col max-h-[94vh] my-auto">
       
       <!-- Fixed Form Header -->
       <div class="shrink-0 px-5 sm:px-7 py-4 sm:py-5 border-b border-slate-200 bg-slate-50/90 flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 shrink-0">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-blue-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/25 shrink-0">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div class="min-w-0">
             <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">WebTask Manager</h1>
-            <p class="text-xs text-slate-500 truncate">নিরাপদ রোল-বেজড লগইন</p>
+            <p class="text-xs text-slate-500 truncate">Supabase রোল-বেজড লগইন</p>
           </div>
         </div>
-        <span class="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          <span>Protected</span>
+        <span id="loginDbBadge" class="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span id="loginDbDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span id="loginDbText">Supabase Ready</span>
         </span>
       </div>
 
@@ -183,8 +184,40 @@
             </label>
           </div>
 
-          <!-- Hidden container preserved only for backward compatibility -->
-          <div id="demoUsersList" class="hidden" aria-hidden="true"></div>
+          <!-- Quick Demo Credentials Selector -->
+          <div class="pt-2 border-t border-slate-100">
+            <p class="text-[11px] font-semibold text-slate-500 mb-2">কুইক ডেমো রোল লগইন (১-ক্লিক অটো-ফিল):</p>
+            <div class="grid grid-cols-2 gap-1.5" id="demoUsersList">
+              <button type="button" data-email="sadia@webtask.io" data-pass="admin123" class="demo-fill-btn text-left p-2 rounded-xl border border-slate-200 hover:border-purple-300 hover:bg-purple-50/50 transition">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-800">Admin</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-100 text-purple-700 font-bold">Full</span>
+                </div>
+                <p class="text-[10px] font-mono text-slate-500 truncate mt-0.5">sadia@webtask.io</p>
+              </button>
+              <button type="button" data-email="tanvir@webtask.io" data-pass="dev123" class="demo-fill-btn text-left p-2 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-800">Developer</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 font-bold">Dev</span>
+                </div>
+                <p class="text-[10px] font-mono text-slate-500 truncate mt-0.5">tanvir@webtask.io</p>
+              </button>
+              <button type="button" data-email="nusrat@webtask.io" data-pass="qa123" class="demo-fill-btn text-left p-2 rounded-xl border border-slate-200 hover:border-amber-300 hover:bg-amber-50/50 transition">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-800">QA Engineer</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-700 font-bold">QA</span>
+                </div>
+                <p class="text-[10px] font-mono text-slate-500 truncate mt-0.5">nusrat@webtask.io</p>
+              </button>
+              <button type="button" data-email="viewer@webtask.io" data-pass="view123" class="demo-fill-btn text-left p-2 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-100/60 transition">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-800">Viewer</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 font-bold">Read</span>
+                </div>
+                <p class="text-[10px] font-mono text-slate-500 truncate mt-0.5">viewer@webtask.io</p>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Fixed Form Footer -->
@@ -213,21 +246,21 @@
           
           <!-- Left: Brand Logo & Title -->
           <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-blue-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
               <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 sm:gap-2">
                 <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">WebTask</h1>
-                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
-                  <span class="hidden xs:inline">Cloud Sync</span>
-                  <span class="xs:hidden">Live</span>
+                <span id="headerDbStatusPill" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                  <span id="headerDbStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                  <span id="headerDbStatusText" class="hidden xs:inline">Supabase Sync</span>
+                  <span class="xs:hidden">DB</span>
                 </span>
               </div>
-              <p class="text-[11px] text-slate-500 truncate hidden sm:block">ওয়েবসাইট আপডেট ও টাস্ক ট্র্যাকার</p>
+              <p class="text-[11px] text-slate-500 truncate hidden sm:block">Supabase ওয়েবসাইট আপডেট ও টাস্ক ট্র্যাকার</p>
             </div>
           </div>
 
@@ -235,19 +268,19 @@
           <div class="flex items-center gap-1 sm:gap-2 shrink-0">
             
             <!-- Sync Button with animated feedback -->
-            <button id="syncBtn" class="flex items-center gap-1.5 text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition active:scale-95 shadow-2xs" title="ডাটা সিঙ্ক করুন">
+            <button id="syncBtn" class="flex items-center gap-1.5 text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition active:scale-95 shadow-2xs" title="সুপাবেস ডাটাবেস সিঙ্ক করুন">
               <svg id="syncIcon" class="w-3.5 h-3.5 text-slate-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               <span id="syncText" class="font-medium hidden md:inline">সিঙ্ক</span>
             </button>
 
-            <!-- Direct Google Sheet Button (Admin Only) -->
-            <button type="button" id="headerSheetBtn" class="hidden xl:flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 transition shadow-2xs" title="ক্লাউড শিট ডাটাবেস ওপেন করুন (Admin Only)">
-              <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.5 3h-15C3.12 3 2 4.12 2 5.5v13C2 19.88 3.12 21 4.5 21h15c1.38 0 2.5-1.12 2.5-2.5v-13C22 4.12 20.88 3 19.5 3zm-9 14H6v-2.5h4.5V17zm0-4H6v-2.5h4.5V13zm0-4H6V6.5h4.5V9zm7.5 8H12v-2.5h6V17zm0-4H12v-2.5h6V13zm0-4H12V6.5h6V9z"/>
+            <!-- Direct Supabase Dashboard Button (Admin Only) -->
+            <button type="button" id="headerSupabaseBtn" class="hidden xl:flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 transition shadow-2xs" title="Supabase প্রজেক্ট ড্যাশবোর্ড ওপেন করুন (Admin Only)">
+              <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
-              <span class="font-medium">গুগল শিট</span>
+              <span class="font-medium">Supabase DB</span>
             </button>
 
             <!-- Add Task Primary Button -->
@@ -283,7 +316,7 @@
           </div>
         </div>
 
-        <!-- Scrollable Tab Bar with Pill Indicator (Constrained without negative margin overflow) -->
+        <!-- Scrollable Tab Bar with Pill Indicator -->
         <div class="flex items-center space-x-1 border-t border-slate-100 overflow-x-auto no-scrollbar py-2">
           
           <button data-tab="kanban" id="tabBtnKanban" class="tab-btn active-tab flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg bg-blue-50 text-blue-700 transition shrink-0">
@@ -333,11 +366,10 @@
           </button>
 
           <button data-tab="settings" id="tabBtnSettings" class="tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition shrink-0">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
             </svg>
-            <span>শিট কনফিগ</span>
+            <span>সুপাবেস কনফিগ</span>
           </button>
 
         </div>
@@ -512,7 +544,7 @@
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden">
           <div class="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
             <div>
-              <h2 class="text-sm sm:text-base font-bold text-slate-900">সকল টাস্ক রেকর্ডস</h2>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">সকল টাস্ক রেকর্ডস (`tasks_database`)</h2>
               <p class="text-[11px] sm:text-xs text-slate-500">ওয়েবসাইট আপডেট ও অ্যাসাইনকৃত কাজের তালিকা</p>
             </div>
             
@@ -564,12 +596,12 @@
           <div class="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             <div>
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-500/30 text-blue-300 border border-blue-400/30">Changelog</span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-400/30">Supabase Changelog</span>
                 <span class="text-xs text-slate-400">রিয়েলটাইম ডিপ্লয়মেন্ট ট্র্যাকার</span>
               </div>
               <h2 class="text-base sm:text-2xl font-bold tracking-tight">ওয়েবসাইট আপডেট ও ভার্সন রিলিজ লগ</h2>
               <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                আপনার ওয়েবসাইটের প্রতিটি কোড রিলিজ, লাইভ আপডেট ও প্যাচ হিস্ট্রি এখানে সংরক্ষিত থাকে।
+                আপনার ওয়েবসাইটের প্রতিটি কোড রিলিজ, লাইভ আপডেট ও প্যাচ হিস্ট্রি `website_updates_log` টেবিলে সংরক্ষিত থাকে।
               </p>
             </div>
             <div class="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 shrink-0">
@@ -712,7 +744,7 @@
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden">
           <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/60">
             <div>
-              <h2 class="text-sm sm:text-base font-bold text-slate-900">সিস্টেম অডিট লগ ও অ্যাক্টিভিটি ট্র্যাকার</h2>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">সিস্টেম অডিট লগ ও অ্যাক্টিভিটি ট্র্যাকার (`audit_logs`)</h2>
               <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">ইউজার লগইন, স্ট্যাটাস পরিবর্তন, কনফিগ আপডেট ও রিলিজ ডিপ্লয়মেন্টের রেকর্ড</p>
             </div>
 
@@ -779,7 +811,7 @@
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden">
           <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50/60">
             <div>
-              <h2 class="text-sm sm:text-base font-bold text-slate-900">টিম ডিরেক্টরি ও রোল ম্যানেজমেন্ট</h2>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">টিম ডিরেক্টরি ও রোল ম্যানেজমেন্ট (`users_database`)</h2>
               <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">সিস্টেমের অনুমোদিত ইউজার, ইমেইল, রোল পারমিশন এবং অ্যাকাউন্ট স্ট্যাটাস</p>
             </div>
 
@@ -862,7 +894,7 @@
                   <td class="py-2 px-3 text-center text-rose-500 font-bold">✕</td>
                 </tr>
                 <tr>
-                  <td class="py-2 px-3 font-medium">ইউজার ম্যানেজমেন্ট, সরাসরি শিট ভিউ ও কনফিগারেশন</td>
+                  <td class="py-2 px-3 font-medium">ইউজার ম্যানেজমেন্ট, সুপাবেস ড্যাশবোর্ড ও কনফিগারেশন</td>
                   <td class="py-2 px-3 text-center text-emerald-600 font-bold">✓</td>
                   <td class="py-2 px-3 text-center text-rose-500 font-bold">✕</td>
                   <td class="py-2 px-3 text-center text-rose-500 font-bold">✕</td>
@@ -874,169 +906,267 @@
         </div>
       </section>
 
-      <!-- ================= VIEW 7: GOOGLE SHEET CONFIG (Admin Protected & Sanitized) ================= -->
+      <!-- ================= VIEW 7: SUPABASE DATABASE CONFIG (Admin Protected) ================= -->
       <section id="view-settings" class="view-content hidden space-y-4 sm:space-y-6">
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 sm:p-6 space-y-6">
           
-          <!-- Sheet Overview Card (No exposed Sheet ID or Table Names; View Sheet Btn enabled ONLY for Admin) -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-gradient-to-br from-emerald-50/70 to-teal-50/40 border border-emerald-200/80 gap-4">
-            <div class="flex items-center gap-3">
+          <!-- Supabase Overview Banner -->
+          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/50 to-blue-50/40 border border-emerald-200/80 gap-4">
+            <div class="flex items-start sm:items-center gap-3.5">
               <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.5 3h-15C3.12 3 2 4.12 2 5.5v13C2 19.88 3.12 21 4.5 21h15c1.38 0 2.5-1.12 2.5-2.5v-13C22 4.12 20.88 3 19.5 3zm-9 14H6v-2.5h4.5V17zm0-4H6v-2.5h4.5V13zm0-4H6V6.5h4.5V9zm7.5 8H12v-2.5h6V17zm0-4H12v-2.5h6V13zm0-4H12V6.5h6V9z"/>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="text-sm sm:text-base font-bold text-slate-900">ক্লাউড স্প্রেডশিট ডাটাবেস সংযোগ</h3>
-                  <span id="sheetAccessBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Admin Verified</span>
+                  <h3 class="text-sm sm:text-base font-bold text-slate-900">Supabase PostgreSQL &amp; Realtime ডাটাবেস সংযোগ</h3>
+                  <span id="supabaseAccessBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Admin Verified</span>
+                  <span id="supabaseConnectionBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">Local Fallback Mode</span>
                 </div>
-                <p class="text-xs text-slate-600 mt-0.5">সিস্টেমের সকল টাস্ক, রিলিজ লগ, অডিট রেকর্ড ও ইউজার ডেটা এনক্রিপ্টেড ক্লাউড শিটের সাথে সিঙ্ককৃত।</p>
+                <p class="text-xs text-slate-600 mt-1">
+                  Google Sheet-এর পরিবর্তে সকল টাস্ক (`tasks_database`), রিলিজ লগ (`website_updates_log`), অডিট (`audit_logs`) ও ইউজার (`users_database`) সরাসরি Supabase PostgreSQL ডাটাবেসে সংরক্ষিত ও রিয়েলটাইম সিঙ্ক হবে।
+                </p>
               </div>
             </div>
 
-            <button type="button" id="viewSheetBtn" class="w-full sm:w-auto text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2 shrink-0">
-              <span id="viewSheetBtnText">সরাসরি শিট দেখুন</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Connection Settings Form -->
-          <div class="border-t border-slate-100 pt-5 space-y-3">
-            <div class="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
-              <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wide">Google Apps Script Web App URL সংযোগ</h4>
-              <button id="resetDemoDataBtn" class="text-xs text-rose-600 hover:text-rose-700 font-semibold px-2.5 py-1 rounded-lg border border-rose-200 hover:bg-rose-50 transition">
-                ডিফল্ট শিট ডাটা রিস্টোর করুন
-              </button>
-            </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              ক্লাউড ডাটাবেসে নতুন টাস্ক বা আপডেট দ্বিমুখী লাইভ সেভ করার জন্য আপনার Apps Script Web App URL এখানে যুক্ত করুন। (শুধুমাত্র Admin পরিবর্তন করতে পারবেন)
-            </p>
-
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input type="url" id="appScriptUrlInput" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="flex-1 px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono">
-              <button id="saveConfigBtn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition shadow-xs shrink-0">
-                সংরক্ষণ করুন
-              </button>
-            </div>
-          </div>
-
-          <!-- Apps Script Code Section (Admin Only) -->
-          <div id="adminScriptCodeSection" class="border-t border-slate-100 pt-5 space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wide">Google Apps Script ইন্টিগ্রেশন কোড (Admin Only)</h4>
-              <button id="copyScriptBtn" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end shrink-0">
+              <button type="button" id="testConnectionBtn" class="flex-1 sm:flex-none text-center px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <span>কোড কপি</span>
+                <span>কানেকশন টেস্ট</span>
+              </button>
+
+              <button type="button" id="seedSupabaseBtn" class="flex-1 sm:flex-none text-center px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5" title="বর্তমান সকল লোকাল ডেটা সুপাবেসের ৪টি টেবিলে পুশ করুন">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <span>ডেটা সুপাবেসে পুশ করুন</span>
+              </button>
+
+              <button type="button" id="viewSupabaseBtn" class="w-full sm:w-auto text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2">
+                <span id="viewSupabaseBtnText">Supabase ড্যাশবোর্ড</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
               </button>
             </div>
+          </div>
 
-            <pre class="bg-slate-900 text-emerald-400 text-xs p-3.5 rounded-xl overflow-x-auto font-mono max-h-60 select-all" id="appsScriptCodeBlock">// Google Apps Script (Code.gs) for WebTask Manager — Complete Cloud Sync API
-function doGet(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var s1 = ss.getSheets()[0];
-  var s2 = ss.getSheets()[1];
-  var s3 = ss.getSheets()[2];
-  var s4 = ss.getSheets()[3];
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "success",
-    tasks: formatRows(s1 ? s1.getDataRange().getValues() : []),
-    updates: formatRows(s2 ? s2.getDataRange().getValues() : []),
-    auditLogs: formatRows(s3 ? s3.getDataRange().getValues() : []),
-    users: formatRows(s4 ? s4.getDataRange().getValues() : [])
-  })).setMimeType(ContentService.MimeType.JSON);
-}
+          <!-- Live Diagnostic Status Box -->
+          <div id="connectionDiagBox" class="hidden p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span id="diagTitle" class="font-bold text-slate-900">সুপাবেস কানেকশন ডায়াগনস্টিক রিপোর্ট</span>
+              <span id="diagTime" class="font-mono text-[10px] text-slate-500"></span>
+            </div>
+            <p id="diagMessage" class="text-slate-600 leading-relaxed"></p>
+            <div id="diagTableCounts" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1"></div>
+          </div>
 
-function doPost(e) {
-  try {
-    var params = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheets = ss.getSheets();
-    var nowStr = Utilities.formatDate(new Date(), "GMT+6", "yyyy-MM-dd HH:mm:ss");
-    var shortNow = Utilities.formatDate(new Date(), "GMT+6", "yyyy-MM-dd HH:mm");
-    
-    if (params.type === "ADD_TASK" && sheets[0]) {
-      sheets[0].appendRow([
-        params.task.id, params.task.title, params.task.page, params.task.category,
-        params.task.status, params.task.priority, params.task.assignedTo,
-        params.task.version, params.task.dueDate, shortNow, params.task.notes
-      ]);
-    } else if (params.type === "UPDATE_TASK" && sheets[0]) {
-      var t = params.task;
-      updateRowById(sheets[0], 0, t.id, [
-        t.id, t.title, t.page, t.category, t.status, t.priority,
-        t.assignedTo, t.version, t.dueDate, shortNow, t.notes
-      ]);
-    } else if (params.type === "DELETE_TASK" && sheets[0]) {
-      deleteRowById(sheets[0], 0, params.taskId);
-    } else if (params.type === "ADD_UPDATE" && sheets[1]) {
-      sheets[1].appendRow([
-        params.update.id, params.update.version, params.update.title,
-        params.update.page, params.update.date, params.update.status, params.update.summary
-      ]);
-    } else if (params.type === "DELETE_UPDATE" && sheets[1]) {
-      deleteRowById(sheets[1], 0, params.updateId);
-    } else if (params.type === "ADD_AUDIT_LOG" && sheets[2]) {
-      var a = params.audit;
-      sheets[2].appendRow([
-        a.id, a.timestamp || nowStr, a.userName, a.userRole, a.actionType, a.targetItem, a.details, a.severity || "Low"
-      ]);
-    } else if (params.type === "ADD_USER" && sheets[3]) {
-      var u = params.user;
-      sheets[3].appendRow([
-        u.id, u.name, u.email, u.password, u.role, u.department, u.status || "Active", u.lastLogin || "-"
-      ]);
-    } else if (params.type === "UPDATE_USER" && sheets[3]) {
-      var u = params.user;
-      updateRowById(sheets[3], 0, u.id, [
-        u.id, u.name, u.email, u.password, u.role, u.department, u.status || "Active", u.lastLogin || shortNow
-      ]);
-    } else if (params.type === "DELETE_USER" && sheets[3]) {
-      deleteRowById(sheets[3], 0, params.userId);
-    }
-    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
-  }
-}
+          <!-- Supabase Credentials Form -->
+          <div class="border-t border-slate-100 pt-5 space-y-4">
+            <div class="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
+              <div>
+                <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wide">Supabase Project URL &amp; Anon Key কনফিগারেশন</h4>
+                <p class="text-xs text-slate-500 mt-0.5">আপনার Supabase Dashboard &rarr; Project Settings &rarr; API থেকে Project URL এবং `anon` `public` key এখানে দিন।</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" id="clearConfigBtn" class="text-xs text-slate-600 hover:text-slate-900 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+                  কনফিগ মুছুন
+                </button>
+                <button type="button" id="resetDemoDataBtn" class="text-xs text-rose-600 hover:text-rose-700 font-semibold px-2.5 py-1 rounded-lg border border-rose-200 hover:bg-rose-50 transition">
+                  ডিফল্ট ডেমো ডাটা রিস্টোর
+                </button>
+              </div>
+            </div>
 
-function updateRowById(sheet, colIdx, id, rowVals) {
-  if (!sheet) return;
-  var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][colIdx]) === String(id)) {
-      sheet.getRange(i + 1, 1, 1, rowVals.length).setValues([rowVals]);
-      return;
-    }
-  }
-}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div>
+                <label for="supabaseUrlInput" class="block text-xs font-bold text-slate-700 mb-1">Supabase Project URL *</label>
+                <input type="url" id="supabaseUrlInput" placeholder="https://your-project-id.supabase.co" class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono">
+              </div>
+              <div>
+                <label for="supabaseKeyInput" class="block text-xs font-bold text-slate-700 mb-1">Supabase Anon / Public API Key *</label>
+                <div class="relative">
+                  <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full pl-3.5 pr-10 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono">
+                  <button type="button" id="toggleSupabaseKeyBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="API Key দেখুন/লুকান">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
 
-function deleteRowById(sheet, colIdx, id) {
-  if (!sheet) return;
-  var data = sheet.getDataRange().getValues();
-  for (var i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][colIdx]) === String(id)) {
-      sheet.deleteRow(i + 1);
-      return;
-    }
-  }
-}
+            <div class="flex justify-end">
+              <button type="button" id="saveConfigBtn" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>সংরক্ষণ ও সুপাবেস কানেক্ট করুন (Save &amp; Connect)</span>
+              </button>
+            </div>
+          </div>
 
-function formatRows(data) {
-  if (!data || data.length <= 1) return [];
-  var headers = data[0], rows = [];
-  for (var i = 1; i < data.length; i++) {
-    var item = {};
-    for (var j = 0; j < headers.length; j++) item[headers[j]] = data[i][j];
-    rows.push(item);
-  }
-  return rows;
-}</pre>
+          <!-- 4-Step Setup Guide Cards -->
+          <div class="border-t border-slate-100 pt-5 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wide">পূর্ণাঙ্গ সুপাবেস সেটআপ গাইড (৪টি সহজ ধাপ)</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                <span class="inline-block px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">ধাপ ১: প্রজেক্ট তৈরি</span>
+                <p class="font-bold text-slate-900">Supabase প্রজেক্ট খুলুন</p>
+                <p class="text-slate-600 leading-relaxed">supabase.com-এ গিয়ে একটি নতুন প্রজেক্ট তৈরি করুন।</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                <span class="inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px]">ধাপ ২: SQL স্ক্রিপ্ট রান</span>
+                <p class="font-bold text-slate-900">SQL Editor-এ কোড পেস্ট করুন</p>
+                <p class="text-slate-600 leading-relaxed">নিচের SQL কোডটি কপি করে Supabase-এর <strong>SQL Editor</strong> &rarr; <strong>New Query</strong>-তে পেস্ট করে <strong>Run</strong> চাপুন।</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                <span class="inline-block px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold text-[10px]">ধাপ ৩: API Key সংগ্রহ</span>
+                <p class="font-bold text-slate-900">URL ও Anon Key কপি করুন</p>
+                <p class="text-slate-600 leading-relaxed"><strong>Project Settings &rarr; API</strong> থেকে Project URL এবং `anon` `public` Key কপি করুন।</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                <span class="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">ধাপ ৪: কানেক্ট ও সিঙ্ক</span>
+                <p class="font-bold text-slate-900">উপরে বসিয়ে Save করুন</p>
+                <p class="text-slate-600 leading-relaxed">উপরের বক্সে URL ও Key বসিয়ে <strong>সংরক্ষণ ও সুপাবেস কানেক্ট করুন</strong> চাপুন।</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supabase SQL Schema & Seed Script Section (Admin Only) -->
+          <div id="adminScriptCodeSection" class="border-t border-slate-100 pt-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wide">Supabase SQL Schema &amp; Seed Script (`supabase_setup.sql`)</h4>
+                <p class="text-[11px] text-slate-500">এই SQL স্ক্রিপ্টটি ৪টি টেবিল (`users_database`, `tasks_database`, `website_updates_log`, `audit_logs`), RLS পলিসি, Realtime এবং প্রাথমিক ডাটা তৈরি করবে।</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" id="downloadSqlBtn" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span>.SQL ডাউনলোড</span>
+                </button>
+                <button type="button" id="copyScriptBtn" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>SQL কোড কপি</span>
+                </button>
+              </div>
+            </div>
+
+            <pre class="bg-slate-900 text-emerald-400 text-xs p-4 rounded-xl overflow-x-auto font-mono max-h-80 select-all" id="supabaseSqlCodeBlock">-- ============================================================================
+-- WebTask Manager — Complete Supabase PostgreSQL Setup &amp; Seed Script
+-- Run this inside Supabase Dashboard -> SQL Editor -> New Query
+-- ============================================================================
+
+-- 1. USERS DATABASE TABLE (RBAC Authentication &amp; Team Directory)
+CREATE TABLE IF NOT EXISTS public.users_database (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'Viewer' CHECK (role IN ('Admin', 'Developer', 'QA', 'Viewer')),
+  department TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+  last_login TEXT DEFAULT '-',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. TASKS DATABASE TABLE (Kanban Board &amp; Task Records)
+CREATE TABLE IF NOT EXISTS public.tasks_database (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  page TEXT NOT NULL DEFAULT '/',
+  category TEXT NOT NULL DEFAULT 'Feature',
+  status TEXT NOT NULL DEFAULT 'To Do' CHECK (status IN ('To Do', 'In Progress', 'Review', 'Completed')),
+  priority TEXT NOT NULL DEFAULT 'Medium' CHECK (priority IN ('High', 'Medium', 'Low')),
+  assigned_to TEXT DEFAULT 'Unassigned',
+  version TEXT DEFAULT 'v1.0.0',
+  due_date TEXT DEFAULT '',
+  last_updated TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. WEBSITE UPDATES LOG TABLE (Deployment &amp; Release Changelog)
+CREATE TABLE IF NOT EXISTS public.website_updates_log (
+  id TEXT PRIMARY KEY,
+  version TEXT NOT NULL,
+  title TEXT NOT NULL,
+  page TEXT NOT NULL DEFAULT '/all',
+  date TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Live' CHECK (status IN ('Live', 'Staging', 'Rollback')),
+  summary TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. AUDIT LOGS TABLE (Security &amp; Activity Tracker)
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+  id TEXT PRIMARY KEY,
+  timestamp TEXT NOT NULL,
+  user_name TEXT NOT NULL,
+  user_role TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  target_item TEXT NOT NULL,
+  details TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'Low' CHECK (severity IN ('High', 'Medium', 'Low')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users_database (LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks_database (status);
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON public.tasks_database (assigned_to);
+CREATE INDEX IF NOT EXISTS idx_updates_status ON public.website_updates_log (status);
+CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.audit_logs (timestamp DESC);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.users_database ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks_database ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_updates_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public access to users_database" ON public.users_database;
+DROP POLICY IF EXISTS "Allow public access to tasks_database" ON public.tasks_database;
+DROP POLICY IF EXISTS "Allow public access to website_updates_log" ON public.website_updates_log;
+DROP POLICY IF EXISTS "Allow public access to audit_logs" ON public.audit_logs;
+
+CREATE POLICY "Allow public access to users_database" ON public.users_database FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to tasks_database" ON public.tasks_database FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to website_updates_log" ON public.website_updates_log FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to audit_logs" ON public.audit_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+-- Enable Realtime on all 4 tables
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'users_database') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.users_database;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'tasks_database') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks_database;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'website_updates_log') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.website_updates_log;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'audit_logs') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.audit_logs;
+  END IF;
+END $$;
+
+-- Initial Users Seed
+INSERT INTO public.users_database (id, name, email, password, role, department, status, last_login) VALUES
+  ('USR-01', 'Sadia Islam', 'sadia@webtask.io', 'admin123', 'Admin', 'Product &amp; Admin', 'Active', '2025-02-19 10:15'),
+  ('USR-02', 'Tanvir Hasan', 'tanvir@webtask.io', 'dev123', 'Developer', 'Frontend Engineering', 'Active', '2025-02-19 09:40'),
+  ('USR-03', 'Rafiq Ahmed', 'rafiq@webtask.io', 'dev123', 'Developer', 'Backend &amp; Payments', 'Active', '2025-02-19 10:00'),
+  ('USR-04', 'Nusrat Jahan', 'nusrat@webtask.io', 'qa123', 'QA', 'Quality Assurance', 'Active', '2025-02-18 16:20'),
+  ('USR-05', 'Guest Visitor', 'viewer@webtask.io', 'view123', 'Viewer', 'Stakeholder', 'Active', '2025-02-19 08:30')
+ON CONFLICT (id) DO NOTHING;</pre>
           </div>
 
         </div>
@@ -1373,12 +1503,25 @@ function formatRows(data) {
     </div>
   </div>
 
-  <!-- ================= CORE LOGIC ================= -->
+  <!-- ================= CORE SUPABASE + APPLICATION LOGIC ================= -->
   <script>
-    // Encoded Cloud Sheet Reference (Not exposed in DOM text)
-    const CLOUD_SHEET_URL = "https://docs.google.com/spreadsheets/d/1ruS1ovIgL2EUpcfINXNVVV87Ym4U76osnIqb4enNgMk/edit";
+    // Optional Hardcoded Supabase Defaults (Can also be configured anytime via the "সুপাবেস কনফিগ" UI tab)
+    const DEFAULT_SUPABASE_URL = "";
+    const DEFAULT_SUPABASE_ANON_KEY = "";
 
-    // Seed Data
+    // Supabase Table Names
+    const SB_TABLES = {
+      USERS: "users_database",
+      TASKS: "tasks_database",
+      UPDATES: "website_updates_log",
+      AUDITS: "audit_logs"
+    };
+
+    // Active Supabase Client & Realtime Channel References
+    let supabaseClient = null;
+    let realtimeChannel = null;
+
+    // Seed Data (Used as initial state & for 1-click seeding to Supabase)
     const INITIAL_USERS = [
       {
         id: "USR-01",
@@ -1675,7 +1818,7 @@ function formatRows(data) {
       Admin: {
         label: "Admin (অ্যাডমিন)",
         badgeClass: "bg-purple-100 text-purple-800 border-purple-200",
-        bannerText: "লগইনকৃত রোল: Admin — সম্পূর্ণ সিস্টেম কন্ট্রোল, ইউজার ম্যানেজমেন্ট ও শিট কনফিগারেশন সক্রিয়।",
+        bannerText: "লগইনকৃত রোল: Admin — সম্পূর্ণ সিস্টেম কন্ট্রোল, ইউজার ম্যানেজমেন্ট ও সুপাবেস কনফিগারেশন সক্রিয়।",
         allowedTabs: ["kanban", "table", "updates", "analytics", "audit", "users", "settings"],
         canCreateTask: true,
         canEditTask: true,
@@ -1686,7 +1829,7 @@ function formatRows(data) {
         canViewAudit: true,
         canManageUsers: true,
         canManageSettings: true,
-        canViewSheet: true
+        canViewDatabase: true
       },
       Developer: {
         label: "Developer (ডেভেলপার)",
@@ -1702,7 +1845,7 @@ function formatRows(data) {
         canViewAudit: true,
         canManageUsers: false,
         canManageSettings: false,
-        canViewSheet: false
+        canViewDatabase: false
       },
       QA: {
         label: "QA (কোয়ালিটি অ্যাসুরেন্স)",
@@ -1718,7 +1861,7 @@ function formatRows(data) {
         canViewAudit: true,
         canManageUsers: false,
         canManageSettings: false,
-        canViewSheet: false
+        canViewDatabase: false
       },
       Viewer: {
         label: "Viewer (স্টেকহোল্ডার ভিউয়ার)",
@@ -1734,7 +1877,7 @@ function formatRows(data) {
         canViewAudit: false,
         canManageUsers: false,
         canManageSettings: false,
-        canViewSheet: false
+        canViewDatabase: false
       }
     };
 
@@ -1755,10 +1898,424 @@ function formatRows(data) {
       auditAction: "ALL",
       auditSeverity: "ALL",
       activeColFilter: "all",
-      appScriptUrl: ""
+      supabaseUrl: "",
+      supabaseKey: "",
+      isSupabaseConnected: false
     };
 
     let toastTimer = null;
+
+    // Normalize & DB Mapping Functions (CamelCase <-> Snake_Case for Supabase PostgreSQL)
+    function normalizeTask(r) {
+      return {
+        id: String(r.id || r.Task_ID || ""),
+        title: String(r.title || r.Title || ""),
+        page: String(r.page || r.Website_Page || "/"),
+        category: String(r.category || r.Category || "Feature"),
+        status: String(r.status || r.Status || "To Do"),
+        priority: String(r.priority || r.Priority || "Medium"),
+        assignedTo: String(r.assigned_to || r.assignedTo || r.Assigned_To || "Unassigned"),
+        version: String(r.version || r.Release_Version || "v1.0.0"),
+        dueDate: String(r.due_date || r.dueDate || r.Due_Date || "").substring(0, 10),
+        lastUpdated: String(r.last_updated || r.lastUpdated || r.Last_Updated || ""),
+        notes: String(r.notes || r.Notes || "")
+      };
+    }
+
+    function toDbTask(t) {
+      return {
+        id: String(t.id),
+        title: String(t.title || ""),
+        page: String(t.page || "/"),
+        category: String(t.category || "Feature"),
+        status: String(t.status || "To Do"),
+        priority: String(t.priority || "Medium"),
+        assigned_to: String(t.assignedTo || "Unassigned"),
+        version: String(t.version || "v1.0.0"),
+        due_date: String(t.dueDate || ""),
+        last_updated: String(t.lastUpdated || ""),
+        notes: String(t.notes || "")
+      };
+    }
+
+    function normalizeUpdate(r) {
+      return {
+        id: String(r.id || r.Log_ID || ""),
+        version: String(r.version || r.Release_Version || ""),
+        title: String(r.title || r.Update_Title || ""),
+        page: String(r.page || r.Page_Affected || "/all"),
+        date: String(r.date || r.Deployed_At || "").substring(0, 10),
+        status: String(r.status || r.Status || "Live"),
+        summary: String(r.summary || r.Summary || "")
+      };
+    }
+
+    function toDbUpdate(u) {
+      return {
+        id: String(u.id),
+        version: String(u.version || ""),
+        title: String(u.title || ""),
+        page: String(u.page || "/all"),
+        date: String(u.date || ""),
+        status: String(u.status || "Live"),
+        summary: String(u.summary || "")
+      };
+    }
+
+    function normalizeAudit(r) {
+      return {
+        id: String(r.id || r.Log_ID || ""),
+        timestamp: String(r.timestamp || r.Timestamp || ""),
+        userName: String(r.user_name || r.userName || r.User_Name || ""),
+        userRole: String(r.user_role || r.userRole || r.User_Role || ""),
+        actionType: String(r.action_type || r.actionType || r.Action_Type || ""),
+        targetItem: String(r.target_item || r.targetItem || r.Target_Item || ""),
+        details: String(r.details || r.Details_Log || ""),
+        severity: String(r.severity || r.Severity || "Low")
+      };
+    }
+
+    function toDbAudit(a) {
+      return {
+        id: String(a.id),
+        timestamp: String(a.timestamp || getNowTimestamp()),
+        user_name: String(a.userName || "System"),
+        user_role: String(a.userRole || "System"),
+        action_type: String(a.actionType || ""),
+        target_item: String(a.targetItem || ""),
+        details: String(a.details || ""),
+        severity: String(a.severity || "Low")
+      };
+    }
+
+    function normalizeUser(r) {
+      return {
+        id: String(r.id || r.User_ID || ""),
+        name: String(r.name || r.Full_Name || ""),
+        email: String(r.email || r.Email || "").trim(),
+        password: String(r.password || r.Password || ""),
+        role: String(r.role || r.Role || "Viewer"),
+        department: String(r.department || r.Department || ""),
+        status: String(r.status || r.Status || "Active"),
+        lastLogin: String(r.last_login || r.lastLogin || r.Last_Login || "-")
+      };
+    }
+
+    function toDbUser(u) {
+      return {
+        id: String(u.id),
+        name: String(u.name || ""),
+        email: String(u.email || "").trim(),
+        password: String(u.password || ""),
+        role: String(u.role || "Viewer"),
+        department: String(u.department || ""),
+        status: String(u.status || "Active"),
+        last_login: String(u.lastLogin || "-")
+      };
+    }
+
+    // ================= SUPABASE CLIENT & REST ENGINE =================
+    function hasSupabaseCredentials() {
+      return Boolean(state.supabaseUrl && state.supabaseKey && state.supabaseUrl.startsWith("http"));
+    }
+
+    function initSupabaseClient() {
+      if (!hasSupabaseCredentials()) {
+        supabaseClient = null;
+        state.isSupabaseConnected = false;
+        updateConnectionBadges();
+        return null;
+      }
+
+      const cleanUrl = state.supabaseUrl.replace(/\/+$/, "");
+      state.supabaseUrl = cleanUrl;
+
+      try {
+        if (window.supabase && typeof window.supabase.createClient === "function") {
+          supabaseClient = window.supabase.createClient(cleanUrl, state.supabaseKey, {
+            auth: { persistSession: false }
+          });
+          subscribeToRealtime();
+        }
+      } catch (err) {
+        console.warn("Supabase JS init fallback to REST:", err);
+      }
+
+      updateConnectionBadges();
+      return supabaseClient;
+    }
+
+    // Unified PostgREST / Supabase Request Helper (works via supabase-js OR direct REST fetch)
+    async function sbFetchTable(tableName, orderCol = "id", ascending = true) {
+      if (!hasSupabaseCredentials()) return null;
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from(tableName)
+          .select("*")
+          .order(orderCol, { ascending });
+        if (error) throw error;
+        return data;
+      } else {
+        const dir = ascending ? "asc" : "desc";
+        const url = `${state.supabaseUrl}/rest/v1/${tableName}?select=*&order=${orderCol}.${dir}`;
+        const res = await fetch(url, {
+          headers: {
+            "apikey": state.supabaseKey,
+            "Authorization": `Bearer ${state.supabaseKey}`
+          }
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return await res.json();
+      }
+    }
+
+    async function sbUpsertRows(tableName, rows) {
+      if (!hasSupabaseCredentials()) return null;
+      const payload = Array.isArray(rows) ? rows : [rows];
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from(tableName)
+          .upsert(payload, { onConflict: "id" });
+        if (error) throw error;
+        return data;
+      } else {
+        const url = `${state.supabaseUrl}/rest/v1/${tableName}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "apikey": state.supabaseKey,
+            "Authorization": `Bearer ${state.supabaseKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates"
+          },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return true;
+      }
+    }
+
+    async function sbDeleteRow(tableName, id) {
+      if (!hasSupabaseCredentials()) return null;
+      if (supabaseClient) {
+        const { error } = await supabaseClient
+          .from(tableName)
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
+        return true;
+      } else {
+        const url = `${state.supabaseUrl}/rest/v1/${tableName}?id=eq.${encodeURIComponent(id)}`;
+        const res = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            "apikey": state.supabaseKey,
+            "Authorization": `Bearer ${state.supabaseKey}`
+          }
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return true;
+      }
+    }
+
+    // Subscribe to Realtime Postgres Changes across all 4 tables
+    function subscribeToRealtime() {
+      if (!supabaseClient) return;
+      try {
+        if (realtimeChannel) {
+          supabaseClient.removeChannel(realtimeChannel);
+        }
+        realtimeChannel = supabaseClient
+          .channel("webtask-realtime-sync")
+          .on("postgres_changes", { event: "*", schema: "public" }, () => {
+            fetchAllFromSupabase(true);
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn("Realtime subscription warning:", e);
+      }
+    }
+
+    // Fetch all 4 tables from Supabase
+    async function fetchAllFromSupabase(silent = false) {
+      if (!hasSupabaseCredentials()) {
+        state.isSupabaseConnected = false;
+        updateConnectionBadges();
+        return false;
+      }
+
+      try {
+        const [usersData, tasksData, updatesData, auditsData] = await Promise.all([
+          sbFetchTable(SB_TABLES.USERS, "id", true),
+          sbFetchTable(SB_TABLES.TASKS, "id", false),
+          sbFetchTable(SB_TABLES.UPDATES, "id", false),
+          sbFetchTable(SB_TABLES.AUDITS, "timestamp", false)
+        ]);
+
+        if (Array.isArray(usersData) && usersData.length > 0) {
+          state.users = usersData.map(normalizeUser);
+        }
+        if (Array.isArray(tasksData) && tasksData.length > 0) {
+          state.tasks = tasksData.map(normalizeTask);
+        }
+        if (Array.isArray(updatesData) && updatesData.length > 0) {
+          state.updates = updatesData.map(normalizeUpdate);
+        }
+        if (Array.isArray(auditsData) && auditsData.length > 0) {
+          state.auditLogs = auditsData.map(normalizeAudit);
+        }
+
+        state.isSupabaseConnected = true;
+        saveData();
+        updateConnectionBadges();
+        if (isAuthenticated()) {
+          render();
+        }
+        if (!silent) {
+          showToast("Supabase PostgreSQL ডাটাবেস থেকে লাইভ ডেটা সিঙ্ক সম্পন্ন হয়েছে!", "success", "Supabase Connected");
+        }
+        return {
+          users: (usersData || []).length,
+          tasks: (tasksData || []).length,
+          updates: (updatesData || []).length,
+          audits: (auditsData || []).length
+        };
+      } catch (err) {
+        state.isSupabaseConnected = false;
+        updateConnectionBadges();
+        if (!silent) {
+          showToast("সুপাবেস সংযোগ ত্রুটি: টেবিল বা API Key যাচাই করুন", "error", "Connection Warning");
+        }
+        throw err;
+      }
+    }
+
+    // Push / Seed all current local data to Supabase tables
+    async function seedAllDataToSupabase() {
+      if (!requireAuth() || !getPerms().canManageSettings) return;
+      if (!hasSupabaseCredentials()) {
+        showAlertPopup("Supabase কনফিগ প্রয়োজন", "অনুগ্রহ করে প্রথমে Supabase Project URL এবং Anon Key বসিয়ে সংরক্ষণ করুন।", "error");
+        return;
+      }
+
+      try {
+        showToast("সুপাবেস ডাটাবেসে সকল টেবিলের ডেটা পুশ হচ্ছে...", "info", "Seeding Supabase");
+        await Promise.all([
+          sbUpsertRows(SB_TABLES.USERS, state.users.map(toDbUser)),
+          sbUpsertRows(SB_TABLES.TASKS, state.tasks.map(toDbTask)),
+          sbUpsertRows(SB_TABLES.UPDATES, state.updates.map(toDbUpdate)),
+          sbUpsertRows(SB_TABLES.AUDITS, state.auditLogs.map(toDbAudit))
+        ]);
+        state.isSupabaseConnected = true;
+        updateConnectionBadges();
+        recordAuditLog("CONFIG_CHANGE", "Supabase_Seed", "Pushed and synchronized all local records to Supabase PostgreSQL tables.", "Medium");
+        showToast("সকল টাস্ক, রিলিজ, ইউজার ও অডিট লগ সফলভাবে সুপাবেসে পুশ হয়েছে!", "success", "Seed Complete");
+        runConnectionDiagnostic();
+      } catch (err) {
+        showAlertPopup(
+          "ডেটা পুশ ব্যর্থ হয়েছে",
+          `সুপাবেসে ডেটা পুশ করা যায়নি: ${err.message || err}. অনুগ্রহ করে নিশ্চিত করুন যে আপনি Supabase SQL Editor-এ নিচের SQL স্ক্রিপ্টটি Run করেছেন।`,
+          "error"
+        );
+      }
+    }
+
+    // Run diagnostic check on all 4 Supabase tables
+    async function runConnectionDiagnostic() {
+      const diagBox = document.getElementById("connectionDiagBox");
+      const diagTitle = document.getElementById("diagTitle");
+      const diagTime = document.getElementById("diagTime");
+      const diagMessage = document.getElementById("diagMessage");
+      const diagCounts = document.getElementById("diagTableCounts");
+
+      diagBox.classList.remove("hidden");
+      diagTime.textContent = getNowTimestamp();
+      diagCounts.innerHTML = "";
+
+      if (!hasSupabaseCredentials()) {
+        diagBox.className = "p-4 rounded-xl border border-amber-200 bg-amber-50/80 text-xs space-y-2";
+        diagTitle.textContent = "সুপাবেস কনফিগারেশন খালি রয়েছে (Local Mode)";
+        diagMessage.textContent = "কোনো Supabase Project URL ও Anon Key সেট করা নেই। নিচের ইনপুট বক্সে আপনার Supabase URL ও Key বসিয়ে 'সংরক্ষণ ও সুপাবেস কানেক্ট করুন' বাটনে চাপুন।";
+        return;
+      }
+
+      diagBox.className = "p-4 rounded-xl border border-blue-200 bg-blue-50/60 text-xs space-y-2";
+      diagTitle.textContent = "সুপাবেস কানেকশন পরীক্ষা করা হচ্ছে...";
+      diagMessage.textContent = `${state.supabaseUrl} এর সাথে সংযোগ যাচাই করা হচ্ছে...`;
+
+      try {
+        const counts = await fetchAllFromSupabase(true);
+        diagBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50/80 text-xs space-y-2";
+        diagTitle.textContent = "✓ Supabase PostgreSQL সংযোগ সফল (All 4 Tables Active)";
+        diagMessage.textContent = "আপনার প্রজেক্টের ৪টি ডাটাবেস টেবিলই সচল রয়েছে এবং দ্বিমুখী রিয়েলটাইম সিঙ্ক কাজ করছে।";
+        diagCounts.innerHTML = `
+          <div class="p-2.5 rounded-lg bg-white border border-emerald-200/80">
+            <p class="text-[10px] text-slate-500 font-mono">users_database</p>
+            <p class="text-sm font-bold text-slate-900">${counts.users} টি ইউজার</p>
+          </div>
+          <div class="p-2.5 rounded-lg bg-white border border-emerald-200/80">
+            <p class="text-[10px] text-slate-500 font-mono">tasks_database</p>
+            <p class="text-sm font-bold text-slate-900">${counts.tasks} টি টাস্ক</p>
+          </div>
+          <div class="p-2.5 rounded-lg bg-white border border-emerald-200/80">
+            <p class="text-[10px] text-slate-500 font-mono">website_updates_log</p>
+            <p class="text-sm font-bold text-slate-900">${counts.updates} টি রিলিজ</p>
+          </div>
+          <div class="p-2.5 rounded-lg bg-white border border-emerald-200/80">
+            <p class="text-[10px] text-slate-500 font-mono">audit_logs</p>
+            <p class="text-sm font-bold text-slate-900">${counts.audits} টি লগ</p>
+          </div>
+        `;
+        showToast("সুপাবেস কানেকশন টেস্ট সফল!", "success");
+      } catch (err) {
+        diagBox.className = "p-4 rounded-xl border border-rose-200 bg-rose-50/80 text-xs space-y-2";
+        diagTitle.textContent = "✕ সুপাবেস সংযোগ বা টেবিল ত্রুটি";
+        diagMessage.textContent = `ত্রুটি: ${err.message || " সংযোগ স্থাপন করা যায়নি"}। আপনি যদি এখনো টেবিল তৈরি না করে থাকেন, তবে নিচের SQL কোডটি কপি করে আপনার Supabase SQL Editor-এ Run করুন।`;
+      }
+    }
+
+    function updateConnectionBadges() {
+      const connBadge = document.getElementById("supabaseConnectionBadge");
+      const headerPill = document.getElementById("headerDbStatusPill");
+      const headerDot = document.getElementById("headerDbStatusDot");
+      const headerText = document.getElementById("headerDbStatusText");
+      const loginBadge = document.getElementById("loginDbBadge");
+      const loginDot = document.getElementById("loginDbDot");
+      const loginText = document.getElementById("loginDbText");
+
+      if (hasSupabaseCredentials() && state.isSupabaseConnected) {
+        if (connBadge) {
+          connBadge.textContent = "🟢 Supabase Connected (Live)";
+          connBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
+        }
+        if (headerPill) {
+          headerPill.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0";
+        }
+        if (headerDot) headerDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-subtle";
+        if (headerText) headerText.textContent = "Supabase Live";
+        if (loginBadge) loginBadge.className = "shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
+        if (loginDot) loginDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500";
+        if (loginText) loginText.textContent = "Supabase Live";
+      } else if (hasSupabaseCredentials()) {
+        if (connBadge) {
+          connBadge.textContent = "🟡 Supabase Configured";
+          connBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200";
+        }
+        if (headerText) headerText.textContent = "Supabase Sync";
+        if (loginText) loginText.textContent = "Supabase Ready";
+      } else {
+        if (connBadge) {
+          connBadge.textContent = "⚪ Local Storage Mode (Not Connected)";
+          connBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-700 border border-slate-200";
+        }
+        if (headerPill) {
+          headerPill.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0";
+        }
+        if (headerDot) headerDot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
+        if (headerText) headerText.textContent = "Local Mode";
+        if (loginText) loginText.textContent = "Supabase Ready";
+      }
+    }
 
     // Strict Auth & Permission Verification Helpers
     function isAuthenticated() {
@@ -1810,61 +2367,6 @@ function formatRows(data) {
       return getNowTimestamp().substring(0, 16);
     }
 
-    // Normalize rows coming from Google Sheet
-    function normalizeTask(r) {
-      return {
-        id: String(r.id || r.Task_ID || ""),
-        title: String(r.title || r.Title || ""),
-        page: String(r.page || r.Website_Page || "/"),
-        category: String(r.category || r.Category || "Feature"),
-        status: String(r.status || r.Status || "To Do"),
-        priority: String(r.priority || r.Priority || "Medium"),
-        assignedTo: String(r.assignedTo || r.Assigned_To || "Unassigned"),
-        version: String(r.version || r.Release_Version || "v1.0.0"),
-        dueDate: String(r.dueDate || r.Due_Date || "").substring(0, 10),
-        lastUpdated: String(r.lastUpdated || r.Last_Updated || ""),
-        notes: String(r.notes || r.Notes || "")
-      };
-    }
-
-    function normalizeUpdate(r) {
-      return {
-        id: String(r.id || r.Log_ID || ""),
-        version: String(r.version || r.Release_Version || ""),
-        title: String(r.title || r.Update_Title || ""),
-        page: String(r.page || r.Page_Affected || "/all"),
-        date: String(r.date || r.Deployed_At || "").substring(0, 10),
-        status: String(r.status || r.Status || "Live"),
-        summary: String(r.summary || r.Summary || "")
-      };
-    }
-
-    function normalizeAudit(r) {
-      return {
-        id: String(r.id || r.Log_ID || ""),
-        timestamp: String(r.timestamp || r.Timestamp || ""),
-        userName: String(r.userName || r.User_Name || ""),
-        userRole: String(r.userRole || r.User_Role || ""),
-        actionType: String(r.actionType || r.Action_Type || ""),
-        targetItem: String(r.targetItem || r.Target_Item || ""),
-        details: String(r.details || r.Details_Log || ""),
-        severity: String(r.severity || r.Severity || "Low")
-      };
-    }
-
-    function normalizeUser(r) {
-      return {
-        id: String(r.id || r.User_ID || ""),
-        name: String(r.name || r.Full_Name || ""),
-        email: String(r.email || r.Email || "").trim(),
-        password: String(r.password || r.Password || ""),
-        role: String(r.role || r.Role || "Viewer"),
-        department: String(r.department || r.Department || ""),
-        status: String(r.status || r.Status || "Active"),
-        lastLogin: String(r.lastLogin || r.Last_Login || "-")
-      };
-    }
-
     function initData() {
       try {
         const savedTasks = localStorage.getItem("webtask_tasks");
@@ -1872,13 +2374,16 @@ function formatRows(data) {
         const savedAudits = localStorage.getItem("webtask_audits");
         const savedUsers = localStorage.getItem("webtask_users");
         const savedCurrentUser = localStorage.getItem("webtask_current_user");
-        const savedUrl = localStorage.getItem("webtask_appscript_url");
+        const savedSbUrl = localStorage.getItem("webtask_supabase_url");
+        const savedSbKey = localStorage.getItem("webtask_supabase_key");
 
         state.tasks = savedTasks ? JSON.parse(savedTasks).map(normalizeTask) : INITIAL_TASKS.map(t => ({ ...t }));
         state.updates = savedUpdates ? JSON.parse(savedUpdates).map(normalizeUpdate) : INITIAL_UPDATES.map(u => ({ ...u }));
         state.auditLogs = savedAudits ? JSON.parse(savedAudits).map(normalizeAudit) : INITIAL_AUDIT_LOGS.map(a => ({ ...a }));
         state.users = savedUsers ? JSON.parse(savedUsers).map(normalizeUser) : INITIAL_USERS.map(u => ({ ...u }));
-        state.appScriptUrl = savedUrl || "";
+
+        state.supabaseUrl = savedSbUrl || DEFAULT_SUPABASE_URL || "";
+        state.supabaseKey = savedSbKey || DEFAULT_SUPABASE_ANON_KEY || "";
 
         if (savedCurrentUser) {
           const parsedUser = JSON.parse(savedCurrentUser);
@@ -1890,9 +2395,16 @@ function formatRows(data) {
           state.currentUser = freshMatch || null;
         }
 
-        if (state.appScriptUrl) {
-          const input = document.getElementById("appScriptUrlInput");
-          if (input) input.value = state.appScriptUrl;
+        const urlInput = document.getElementById("supabaseUrlInput");
+        const keyInput = document.getElementById("supabaseKeyInput");
+        if (urlInput) urlInput.value = state.supabaseUrl;
+        if (keyInput) keyInput.value = state.supabaseKey;
+
+        if (hasSupabaseCredentials()) {
+          initSupabaseClient();
+          fetchAllFromSupabase(true).catch(() => {});
+        } else {
+          updateConnectionBadges();
         }
       } catch (e) {
         state.tasks = INITIAL_TASKS.map(t => ({ ...t }));
@@ -1909,7 +2421,8 @@ function formatRows(data) {
         localStorage.setItem("webtask_updates", JSON.stringify(state.updates));
         localStorage.setItem("webtask_audits", JSON.stringify(state.auditLogs));
         localStorage.setItem("webtask_users", JSON.stringify(state.users));
-        localStorage.setItem("webtask_appscript_url", state.appScriptUrl);
+        localStorage.setItem("webtask_supabase_url", state.supabaseUrl || "");
+        localStorage.setItem("webtask_supabase_key", state.supabaseKey || "");
         const remember = document.getElementById("rememberMeCheckbox");
         if (state.currentUser && (!remember || remember.checked)) {
           localStorage.setItem("webtask_current_user", JSON.stringify(state.currentUser));
@@ -1921,12 +2434,15 @@ function formatRows(data) {
       }
     }
 
-    // Add an Audit Log entry & optionally sync to Apps Script
+    // Add an Audit Log entry & sync directly to Supabase `audit_logs`
     function recordAuditLog(actionType, targetItem, details, severity = "Low") {
       const user = state.currentUser || { name: "System", role: "System" };
-      const nextNum = state.auditLogs.length + 201;
+      const maxAud = state.auditLogs.reduce((acc, a) => {
+        const m = String(a.id).match(/\d+/);
+        return m ? Math.max(acc, parseInt(m[0], 10)) : acc;
+      }, 200);
       const entry = {
-        id: "AUD-" + nextNum,
+        id: "AUD-" + (maxAud + 1),
         timestamp: getNowTimestamp(),
         userName: user.name,
         userRole: `${user.role}${user.department ? ' (' + user.department + ')' : ''}`,
@@ -1939,8 +2455,8 @@ function formatRows(data) {
       saveData();
       const badge = document.getElementById("auditCountBadge");
       if (badge) badge.textContent = state.auditLogs.length;
-      if (state.appScriptUrl) {
-        postToAppsScript({ type: "ADD_AUDIT_LOG", audit: entry });
+      if (hasSupabaseCredentials()) {
+        sbUpsertRows(SB_TABLES.AUDITS, toDbAudit(entry)).catch(err => console.warn("Supabase audit sync:", err));
       }
       return entry;
     }
@@ -1967,7 +2483,6 @@ function formatRows(data) {
 
       toastMsg.textContent = message;
 
-      // Reset animated progress bar
       progressBar.classList.remove("animate-toast-progress");
       void progressBar.offsetWidth;
 
@@ -2149,43 +2664,48 @@ function formatRows(data) {
         newUserBtn.classList.add("hidden");
       }
 
-      // Sheet View Button & Config Protection (Admin Only)
-      const headerSheetBtn = document.getElementById("headerSheetBtn");
-      const viewSheetBtn = document.getElementById("viewSheetBtn");
-      const viewSheetBtnText = document.getElementById("viewSheetBtnText");
-      const sheetAccessBadge = document.getElementById("sheetAccessBadge");
+      // Supabase Dashboard Button & Config Protection (Admin Only)
+      const headerSupabaseBtn = document.getElementById("headerSupabaseBtn");
+      const viewSupabaseBtn = document.getElementById("viewSupabaseBtn");
+      const viewSupabaseBtnText = document.getElementById("viewSupabaseBtnText");
+      const supabaseAccessBadge = document.getElementById("supabaseAccessBadge");
       const adminScriptCodeSection = document.getElementById("adminScriptCodeSection");
-      const urlInput = document.getElementById("appScriptUrlInput");
+      const urlInput = document.getElementById("supabaseUrlInput");
+      const keyInput = document.getElementById("supabaseKeyInput");
       const saveConfigBtn = document.getElementById("saveConfigBtn");
       const resetDemoBtn = document.getElementById("resetDemoDataBtn");
 
-      if (perms.canViewSheet) {
-        headerSheetBtn.classList.remove("xl:hidden");
-        viewSheetBtn.className = "w-full sm:w-auto text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer";
-        viewSheetBtnText.textContent = "সরাসরি শিট দেখুন";
-        sheetAccessBadge.textContent = "Admin Access Enabled";
-        sheetAccessBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
+      if (perms.canViewDatabase) {
+        headerSupabaseBtn.classList.remove("xl:hidden");
+        viewSupabaseBtn.className = "w-full sm:w-auto text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer";
+        viewSupabaseBtnText.textContent = "Supabase ড্যাশবোর্ড";
+        supabaseAccessBadge.textContent = "Admin Access Enabled";
+        supabaseAccessBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
         if (adminScriptCodeSection) adminScriptCodeSection.classList.remove("hidden");
       } else {
-        headerSheetBtn.classList.add("xl:hidden");
-        viewSheetBtn.className = "w-full sm:w-auto text-center px-4 py-2.5 bg-slate-200 text-slate-500 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 shrink-0 cursor-not-allowed";
-        viewSheetBtnText.textContent = "সরাসরি শিট দেখুন (Admin Only)";
-        sheetAccessBadge.textContent = "Restricted (Admin Only)";
-        sheetAccessBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200";
+        headerSupabaseBtn.classList.add("xl:hidden");
+        viewSupabaseBtn.className = "w-full sm:w-auto text-center px-4 py-2.5 bg-slate-200 text-slate-500 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 shrink-0 cursor-not-allowed";
+        viewSupabaseBtnText.textContent = "Supabase ড্যাশবোর্ড (Admin Only)";
+        supabaseAccessBadge.textContent = "Restricted (Admin Only)";
+        supabaseAccessBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200";
         if (adminScriptCodeSection) adminScriptCodeSection.classList.add("hidden");
       }
 
       if (perms.canManageSettings) {
         urlInput.removeAttribute("disabled");
+        keyInput.removeAttribute("disabled");
         saveConfigBtn.removeAttribute("disabled");
         saveConfigBtn.classList.remove("opacity-50", "cursor-not-allowed");
         resetDemoBtn.classList.remove("hidden");
       } else {
         urlInput.setAttribute("disabled", "true");
+        keyInput.setAttribute("disabled", "true");
         saveConfigBtn.setAttribute("disabled", "true");
         saveConfigBtn.classList.add("opacity-50", "cursor-not-allowed");
         resetDemoBtn.classList.add("hidden");
       }
+
+      updateConnectionBadges();
 
       // Update Badge Counts
       document.getElementById("auditCountBadge").textContent = state.auditLogs.length;
@@ -2319,7 +2839,6 @@ function formatRows(data) {
 
       const counts = { "To Do": 0, "In Progress": 0, "Review": 0, "Completed": 0 };
 
-      // Clear columns
       Object.values(cols).forEach(col => col.innerHTML = "");
 
       filtered.forEach(task => {
@@ -2337,7 +2856,6 @@ function formatRows(data) {
         const isMine = state.currentUser && (task.assignedTo || "").toLowerCase() === state.currentUser.name.toLowerCase();
 
         card.innerHTML = `
-          <!-- Card Header -->
           <div class="flex items-center justify-between mb-1.5">
             <div class="flex items-center gap-1.5">
               <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60">${task.id}</span>
@@ -2348,20 +2866,16 @@ function formatRows(data) {
             </div>
           </div>
           
-          <!-- Title -->
           <h4 class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition leading-snug mb-1">${task.title}</h4>
           
-          <!-- Notes -->
           ${task.notes ? `<p class="text-[11px] text-slate-500 line-clamp-2 mb-2 leading-relaxed font-normal">${task.notes}</p>` : ''}
           
-          <!-- Badges & Page -->
           <div class="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-slate-100 text-[11px]">
             <div class="flex items-center gap-1.5 flex-wrap">
               ${getCategoryBadge(task.category)}
               <span class="font-mono text-[10px] text-blue-600 font-semibold bg-blue-50/80 px-1.5 py-0.5 rounded border border-blue-200/60">${task.page}</span>
             </div>
 
-            <!-- Assignee avatar -->
             <div class="flex items-center gap-1 text-slate-600 font-medium text-[11px]" title="${task.assignedTo || 'Unassigned'}">
               <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-slate-200 to-slate-300 text-slate-700 flex items-center justify-center text-[9px] font-bold shadow-2xs">
                 ${task.assignedTo ? task.assignedTo.charAt(0) : 'U'}
@@ -2370,7 +2884,6 @@ function formatRows(data) {
             </div>
           </div>
 
-          <!-- Bottom Action Bar (One-touch move for touch/mobile screens) -->
           <div class="mt-2 pt-2 border-t border-dashed border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
             <span class="text-slate-400 flex items-center gap-1">
               <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -2395,10 +2908,8 @@ function formatRows(data) {
           </div>
         `;
 
-        // Click to edit / view
         card.addEventListener("click", () => openTaskModal(task));
 
-        // Quick advance button
         const advBtn = card.querySelector(".quick-advance-btn");
         if (advBtn) {
           advBtn.addEventListener("click", (e) => {
@@ -2407,7 +2918,6 @@ function formatRows(data) {
           });
         }
 
-        // Drag events (only if permitted)
         if (perms.canMoveTask) {
           card.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", task.id);
@@ -2421,13 +2931,11 @@ function formatRows(data) {
         col.appendChild(card);
       });
 
-      // Update Badges on columns
       document.getElementById("badge-todo").textContent = counts["To Do"];
       document.getElementById("badge-inprogress").textContent = counts["In Progress"];
       document.getElementById("badge-review").textContent = counts["Review"];
       document.getElementById("badge-completed").textContent = counts["Completed"];
       
-      // Update Mobile Segmented Control Badges
       document.getElementById("m-badge-todo").textContent = counts["To Do"];
       document.getElementById("m-badge-inprogress").textContent = counts["In Progress"];
       document.getElementById("m-badge-review").textContent = counts["Review"];
@@ -2435,7 +2943,6 @@ function formatRows(data) {
 
       document.getElementById("kanbanCountBadge").textContent = filtered.length;
 
-      // Handle Column Filter on Mobile
       applyMobileColFilter();
     }
 
@@ -2466,7 +2973,7 @@ function formatRows(data) {
       }
     }
 
-    // Change Task Status helper with RBAC check & Audit Log
+    // Change Task Status helper with RBAC check & Supabase Sync
     function changeTaskStatus(taskId, newStatus) {
       if (!requireAuth()) return;
       const perms = getPerms();
@@ -2480,7 +2987,7 @@ function formatRows(data) {
         const oldStatus = task.status;
         task.status = newStatus;
         task.lastUpdated = getShortTimestamp();
-        const audit = recordAuditLog(
+        recordAuditLog(
           "STATUS_CHANGE",
           task.id,
           `Changed status of '${task.title}' from '${oldStatus}' to '${newStatus}'.`,
@@ -2490,8 +2997,8 @@ function formatRows(data) {
         render();
         showToast(`টাস্ক স্ট্যাটাস "${newStatus}" এ আপডেট করা হয়েছে`, "success");
 
-        if (state.appScriptUrl) {
-          postToAppsScript({ type: "UPDATE_TASK", task, audit });
+        if (hasSupabaseCredentials()) {
+          sbUpsertRows(SB_TABLES.TASKS, toDbTask(task)).catch(err => console.warn("Supabase task status update:", err));
         }
       }
     }
@@ -2502,11 +3009,9 @@ function formatRows(data) {
       const filtered = getFilteredTasks();
       const perms = getPerms();
       
-      // Desktop Table Body
       const tbody = document.getElementById("tableBody");
       tbody.innerHTML = "";
 
-      // Mobile Card List
       const mobList = document.getElementById("mobileTaskList");
       mobList.innerHTML = "";
 
@@ -2517,7 +3022,6 @@ function formatRows(data) {
       }
 
       filtered.forEach(task => {
-        // 1. Populate Desktop Table Row
         const tr = document.createElement("tr");
         tr.className = "hover:bg-blue-50/40 transition cursor-pointer";
         tr.innerHTML = `
@@ -2539,7 +3043,6 @@ function formatRows(data) {
         tr.addEventListener("click", () => openTaskModal(task));
         tbody.appendChild(tr);
 
-        // 2. Populate Mobile Card
         const mobCard = document.createElement("div");
         mobCard.className = "bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:border-blue-300 transition cursor-pointer space-y-2";
         mobCard.innerHTML = `
@@ -2597,7 +3100,6 @@ function formatRows(data) {
         }
 
         item.innerHTML = `
-          <!-- Dot on timeline line -->
           <div class="absolute left-1.5 top-1.5 -translate-x-1/2 w-4 h-4 rounded-full ${statusClass} border-2 border-white shadow-xs"></div>
           
           <div class="bg-slate-50 hover:bg-slate-100/80 p-3.5 sm:p-4 rounded-xl border border-slate-200/90 transition shadow-2xs">
@@ -2636,8 +3138,8 @@ function formatRows(data) {
             saveData();
             renderUpdates();
             showToast(`রিলিজ রেকর্ড ${up.id} মুছে ফেলা হয়েছে`, "info");
-            if (state.appScriptUrl) {
-              postToAppsScript({ type: "DELETE_UPDATE", updateId: up.id });
+            if (hasSupabaseCredentials()) {
+              sbDeleteRow(SB_TABLES.UPDATES, up.id).catch(err => console.warn("Supabase update delete:", err));
             }
           });
         }
@@ -2664,7 +3166,6 @@ function formatRows(data) {
       document.getElementById("metricActiveTasks").textContent = active;
       document.getElementById("metricLiveReleases").textContent = live;
 
-      // Category breakdown
       const categories = ["UI/UX", "Bug Fix", "Feature", "Performance", "SEO"];
       const catCounts = categories.map(cat => state.tasks.filter(t => t.category === cat).length);
 
@@ -2690,7 +3191,6 @@ function formatRows(data) {
         }
       });
 
-      // Page impact breakdown
       const pageMap = {};
       state.tasks.forEach(t => {
         const p = t.page || "/other";
@@ -2726,7 +3226,6 @@ function formatRows(data) {
         }
       });
 
-      // Team Workload Breakdown
       const workloadGrid = document.getElementById("teamWorkloadGrid");
       if (workloadGrid) {
         workloadGrid.innerHTML = "";
@@ -2794,7 +3293,6 @@ function formatRows(data) {
           sevBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">Medium</span>`;
         }
 
-        // Desktop Row
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50/80 transition";
         tr.innerHTML = `
@@ -2813,7 +3311,6 @@ function formatRows(data) {
         `;
         tbody.appendChild(tr);
 
-        // Mobile Card
         const card = document.createElement("div");
         card.className = "bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs space-y-1.5";
         card.innerHTML = `
@@ -2852,7 +3349,6 @@ function formatRows(data) {
           ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active</span>`
           : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Inactive</span>`;
 
-        // Desktop Row
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50/80 transition";
         tr.innerHTML = `
@@ -2880,7 +3376,6 @@ function formatRows(data) {
         }
         tbody.appendChild(tr);
 
-        // Mobile Card
         const mobCard = document.createElement("div");
         mobCard.className = "bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs space-y-2";
         mobCard.innerHTML = `
@@ -2966,7 +3461,6 @@ function formatRows(data) {
         deleteBtn.classList.add("hidden");
       }
 
-      // Apply Read-Only state if Viewer
       if (!perms.canEditTask) {
         inputs.forEach(el => el.setAttribute("disabled", "true"));
         saveBtn.classList.add("hidden");
@@ -3059,12 +3553,12 @@ function formatRows(data) {
       `;
 
       const items = [
-        { label: "নতুন টাস্ক তৈরি ও এডিট", allowed: perms.canEditTask },
+        { label: "নতুন টাস্ক তৈরি ও এডিট (`tasks_database`)", allowed: perms.canEditTask },
         { label: "কানবান স্ট্যাটাস পরিবর্তন (Drag & Move)", allowed: perms.canMoveTask },
-        { label: "ওয়েবসাইট রিলিজ আপডেট প্রকাশ", allowed: perms.canCreateUpdate },
-        { label: "সিস্টেম অডিট লগ পর্যবেক্ষণ", allowed: perms.canViewAudit },
+        { label: "ওয়েবসাইট রিলিজ আপডেট প্রকাশ (`website_updates_log`)", allowed: perms.canCreateUpdate },
+        { label: "সিস্টেম অডিট লগ পর্যবেক্ষণ (`audit_logs`)", allowed: perms.canViewAudit },
         { label: "টাস্ক ও রিলিজ ডিলিট", allowed: perms.canDeleteTask },
-        { label: "ইউজার ম্যানেজমেন্ট ও শিট কনফিগারেশন", allowed: perms.canViewSheet }
+        { label: "ইউজার ম্যানেজমেন্ট ও সুপাবেস কনফিগারেশন", allowed: perms.canViewDatabase }
       ];
 
       document.getElementById("profilePermissionsList").innerHTML = items.map(item => `
@@ -3083,14 +3577,21 @@ function formatRows(data) {
       document.getElementById("roleInfoModal").classList.add("hidden");
     }
 
-    function handleViewCloudSheet() {
+    function handleViewSupabaseDashboard() {
       if (!requireAuth()) return;
       const perms = getPerms();
-      if (!perms.canViewSheet) {
-        showAlertPopup("অ্যাডমিন পারমিশন প্রয়োজন", "নিরাপত্তাজনিত কারণে সরাসরি গুগল শিট ডাটাবেস দেখার অনুমতি শুধুমাত্র Admin রোলের জন্য সংরক্ষিত।", "error");
+      if (!perms.canViewDatabase) {
+        showAlertPopup("অ্যাডমিন পারমিশন প্রয়োজন", "নিরাপত্তাজনিত কারণে সরাসরি সুপাবেস প্রজেক্ট ড্যাশবোর্ড দেখার অনুমতি শুধুমাত্র Admin রোলের জন্য সংরক্ষিত।", "error");
         return;
       }
-      window.open(CLOUD_SHEET_URL, "_blank", "noopener,noreferrer");
+      let targetUrl = "https://supabase.com/dashboard";
+      if (state.supabaseUrl) {
+        const match = state.supabaseUrl.match(/https?:\/\/([a-z0-9-]+)\.supabase\.co/i);
+        if (match && match[1]) {
+          targetUrl = `https://supabase.com/dashboard/project/${match[1]}/editor`;
+        }
+      }
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
     }
 
     function handleLogout() {
@@ -3098,7 +3599,9 @@ function formatRows(data) {
         recordAuditLog("USER_LOGIN", state.currentUser.id, `User ${state.currentUser.name} (${state.currentUser.role}) logged out.`, "Low");
       }
       state.currentUser = null;
-      localStorage.removeItem("webtask_current_user");
+      try {
+        localStorage.removeItem("webtask_current_user");
+      } catch (e) {}
       closeRoleInfoModal();
       closeTaskModal();
       closeUpdateModal();
@@ -3115,22 +3618,45 @@ function formatRows(data) {
       initData();
       render();
 
+      // Demo Credentials Quick-Fill Buttons on Login Screen
+      document.querySelectorAll(".demo-fill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.getElementById("loginEmail").value = btn.dataset.email || "";
+          document.getElementById("loginPassword").value = btn.dataset.pass || "";
+          document.getElementById("loginErrorBox").classList.add("hidden");
+        });
+      });
+
       // Toast & Alert Modal Close Buttons
       document.getElementById("closeToastBtn").addEventListener("click", hideToast);
       document.getElementById("closeAlertModalBtn").addEventListener("click", closeAlertPopup);
       document.getElementById("okAlertModalBtn").addEventListener("click", closeAlertPopup);
 
-      // Protected Google Sheet View Buttons (Admin Only)
-      document.getElementById("viewSheetBtn").addEventListener("click", handleViewCloudSheet);
-      document.getElementById("headerSheetBtn").addEventListener("click", handleViewCloudSheet);
+      // Protected Supabase Dashboard View Buttons (Admin Only)
+      document.getElementById("viewSupabaseBtn").addEventListener("click", handleViewSupabaseDashboard);
+      document.getElementById("headerSupabaseBtn").addEventListener("click", handleViewSupabaseDashboard);
+      document.getElementById("testConnectionBtn").addEventListener("click", runConnectionDiagnostic);
+      document.getElementById("seedSupabaseBtn").addEventListener("click", seedAllDataToSupabase);
 
-      // Login Form Submit
-      document.getElementById("loginForm").addEventListener("submit", (e) => {
+      // Login Form Submit (Supports Live Supabase User Verification + Local Fallback)
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = document.getElementById("loginEmail").value.trim().toLowerCase();
         const password = document.getElementById("loginPassword").value;
         const errBox = document.getElementById("loginErrorBox");
         const errText = document.getElementById("loginErrorText");
+
+        // Refresh users from Supabase if connected
+        if (hasSupabaseCredentials()) {
+          try {
+            const remoteUsers = await sbFetchTable(SB_TABLES.USERS, "id", true);
+            if (Array.isArray(remoteUsers) && remoteUsers.length > 0) {
+              state.users = remoteUsers.map(normalizeUser);
+            }
+          } catch (err) {
+            console.warn("Login fallback to cached users:", err);
+          }
+        }
 
         const matchedUser = state.users.find(u => u.email.toLowerCase() === email && u.password === password);
         if (!matchedUser) {
@@ -3156,8 +3682,8 @@ function formatRows(data) {
         render();
         showToast(`স্বাগতম ${matchedUser.name} (${matchedUser.role})!`, "success", "লগইন সফল");
 
-        if (state.appScriptUrl) {
-          postToAppsScript({ type: "USER_LOGIN", userId: matchedUser.id, lastLogin: matchedUser.lastLogin });
+        if (hasSupabaseCredentials()) {
+          sbUpsertRows(SB_TABLES.USERS, toDbUser(matchedUser)).catch(err => console.warn("Supabase login update:", err));
         }
       });
 
@@ -3165,6 +3691,12 @@ function formatRows(data) {
       document.getElementById("togglePasswordBtn").addEventListener("click", () => {
         const pwInput = document.getElementById("loginPassword");
         pwInput.type = pwInput.type === "password" ? "text" : "password";
+      });
+
+      // Supabase API Key Visibility Toggle
+      document.getElementById("toggleSupabaseKeyBtn").addEventListener("click", () => {
+        const keyInput = document.getElementById("supabaseKeyInput");
+        keyInput.type = keyInput.type === "password" ? "text" : "password";
       });
 
       // Logout & Profile Modal Handlers
@@ -3183,7 +3715,6 @@ function formatRows(data) {
         showToast(state.filterAssignee === "MY_TASKS" ? "শুধুমাত্র আপনার অ্যাসাইনকৃত টাস্ক দেখানো হচ্ছে" : "সব টাস্ক দেখানো হচ্ছে", "info");
       });
 
-      // Window resize listener to recheck column filter layout
       window.addEventListener("resize", () => {
         if (isAuthenticated()) applyMobileColFilter();
       });
@@ -3317,7 +3848,7 @@ function formatRows(data) {
       document.getElementById("closeTaskModalBtn").addEventListener("click", closeTaskModal);
       document.getElementById("cancelTaskModalBtn").addEventListener("click", closeTaskModal);
 
-      // Task Form Submit
+      // Task Form Submit -> Direct Supabase Upsert
       document.getElementById("taskForm").addEventListener("submit", (e) => {
         e.preventDefault();
         if (!requireAuth()) return;
@@ -3351,10 +3882,10 @@ function formatRows(data) {
             task.dueDate = dueDate;
             task.notes = notes;
             task.lastUpdated = getShortTimestamp();
-            const audit = recordAuditLog("TASK_UPDATE", task.id, `Updated task '${task.title}' (Status: ${task.status}, Priority: ${task.priority}).`, priority === "High" ? "Medium" : "Low");
+            recordAuditLog("TASK_UPDATE", task.id, `Updated task '${task.title}' (Status: ${task.status}, Priority: ${task.priority}).`, priority === "High" ? "Medium" : "Low");
             showToast("টাস্ক সফলভাবে আপডেট হয়েছে", "success");
-            if (state.appScriptUrl) {
-              postToAppsScript({ type: "UPDATE_TASK", task, audit });
+            if (hasSupabaseCredentials()) {
+              sbUpsertRows(SB_TABLES.TASKS, toDbTask(task)).catch(err => console.warn("Supabase task update:", err));
             }
           }
         } else {
@@ -3377,11 +3908,11 @@ function formatRows(data) {
             notes
           };
           state.tasks.unshift(newTask);
-          const audit = recordAuditLog("TASK_CREATE", newId, `Created task '${title}' for page ${page} assigned to ${newTask.assignedTo}.`, priority === "High" ? "Medium" : "Low");
+          recordAuditLog("TASK_CREATE", newId, `Created task '${title}' for page ${page} assigned to ${newTask.assignedTo}.`, priority === "High" ? "Medium" : "Low");
           showToast(`নতুন টাস্ক (${newId}) তৈরি হয়েছে`, "success");
 
-          if (state.appScriptUrl) {
-            postToAppsScript({ type: "ADD_TASK", task: newTask, audit });
+          if (hasSupabaseCredentials()) {
+            sbUpsertRows(SB_TABLES.TASKS, toDbTask(newTask)).catch(err => console.warn("Supabase task insert:", err));
           }
         }
 
@@ -3390,7 +3921,7 @@ function formatRows(data) {
         render();
       });
 
-      // Delete Task Button (Admin Only)
+      // Delete Task Button (Admin Only) -> Direct Supabase Delete
       document.getElementById("deleteTaskBtn").addEventListener("click", () => {
         if (!requireAuth()) return;
         if (!getPerms().canDeleteTask) {
@@ -3401,18 +3932,18 @@ function formatRows(data) {
         if (id) {
           const target = state.tasks.find(t => t.id === id);
           state.tasks = state.tasks.filter(t => t.id !== id);
-          const audit = recordAuditLog("TASK_DELETE", id, `Deleted task ${id} (${target ? target.title : ''}).`, "High");
+          recordAuditLog("TASK_DELETE", id, `Deleted task ${id} (${target ? target.title : ''}).`, "High");
           saveData();
           closeTaskModal();
           render();
           showToast(`টাস্ক ${id} মুছে ফেলা হয়েছে`, "info");
-          if (state.appScriptUrl) {
-            postToAppsScript({ type: "DELETE_TASK", taskId: id, audit });
+          if (hasSupabaseCredentials()) {
+            sbDeleteRow(SB_TABLES.TASKS, id).catch(err => console.warn("Supabase task delete:", err));
           }
         }
       });
 
-      // Update Modal Handlers
+      // Update Modal Handlers -> Direct Supabase Upsert
       document.getElementById("openNewUpdateModalBtn").addEventListener("click", openUpdateModal);
       document.getElementById("closeUpdateModalBtn").addEventListener("click", closeUpdateModal);
       document.getElementById("cancelUpdateModalBtn").addEventListener("click", closeUpdateModal);
@@ -3431,8 +3962,12 @@ function formatRows(data) {
         const date = document.getElementById("updateFormDate").value;
         const summary = document.getElementById("updateFormSummary").value.trim();
 
+        const maxUpNum = state.updates.reduce((acc, u) => {
+          const m = String(u.id).match(/\d+/);
+          return m ? Math.max(acc, parseInt(m[0], 10)) : acc;
+        }, 0);
         const newUpdate = {
-          id: "LOG-0" + (state.updates.length + 1),
+          id: "LOG-" + String(maxUpNum + 1).padStart(2, "0"),
           version,
           status,
           title,
@@ -3442,18 +3977,18 @@ function formatRows(data) {
         };
 
         state.updates.unshift(newUpdate);
-        const audit = recordAuditLog("RELEASE_DEPLOY", version, `Published ${status} release ${version}: ${title} (${page}).`, status === "Rollback" ? "High" : "Medium");
+        recordAuditLog("RELEASE_DEPLOY", version, `Published ${status} release ${version}: ${title} (${page}).`, status === "Rollback" ? "High" : "Medium");
         saveData();
         closeUpdateModal();
         render();
         showToast("ওয়েবসাইট আপডেট রেকর্ড যুক্ত হয়েছে", "success");
 
-        if (state.appScriptUrl) {
-          postToAppsScript({ type: "ADD_UPDATE", update: newUpdate, audit });
+        if (hasSupabaseCredentials()) {
+          sbUpsertRows(SB_TABLES.UPDATES, toDbUpdate(newUpdate)).catch(err => console.warn("Supabase update insert:", err));
         }
       });
 
-      // User Modal Handlers (Admin Only)
+      // User Modal Handlers (Admin Only) -> Direct Supabase Upsert/Delete
       document.getElementById("openNewUserModalBtn").addEventListener("click", () => openUserModal());
       document.getElementById("closeUserModalBtn").addEventListener("click", closeUserModal);
       document.getElementById("cancelUserModalBtn").addEventListener("click", closeUserModal);
@@ -3486,10 +4021,10 @@ function formatRows(data) {
             if (state.currentUser && state.currentUser.id === usr.id) {
               state.currentUser = { ...usr };
             }
-            const audit = recordAuditLog("USER_MANAGE", usr.id, `Updated user ${usr.name} (${usr.email}) — Role: ${usr.role}, Status: ${usr.status}.`, "Medium");
+            recordAuditLog("USER_MANAGE", usr.id, `Updated user ${usr.name} (${usr.email}) — Role: ${usr.role}, Status: ${usr.status}.`, "Medium");
             showToast(`ইউজার ${usr.name} আপডেট হয়েছে`, "success");
-            if (state.appScriptUrl) {
-              postToAppsScript({ type: "UPDATE_USER", user: usr, audit });
+            if (hasSupabaseCredentials()) {
+              sbUpsertRows(SB_TABLES.USERS, toDbUser(usr)).catch(err => console.warn("Supabase user update:", err));
             }
           }
         } else {
@@ -3497,7 +4032,11 @@ function formatRows(data) {
             showAlertPopup("ডুপ্লিকেট ইমেইল", "এই ইমেইল দিয়ে ইতিমধ্যে একজন ইউজার রয়েছেন!", "error");
             return;
           }
-          const nextNum = String(state.users.length + 1).padStart(2, "0");
+          const maxUsrNum = state.users.reduce((acc, u) => {
+            const m = String(u.id).match(/\d+/);
+            return m ? Math.max(acc, parseInt(m[0], 10)) : acc;
+          }, 0);
+          const nextNum = String(maxUsrNum + 1).padStart(2, "0");
           const newUser = {
             id: "USR-" + nextNum,
             name,
@@ -3509,10 +4048,10 @@ function formatRows(data) {
             lastLogin: "-"
           };
           state.users.push(newUser);
-          const audit = recordAuditLog("USER_MANAGE", newUser.id, `Added new user ${newUser.name} (${newUser.email}) with role '${newUser.role}'.`, "Medium");
+          recordAuditLog("USER_MANAGE", newUser.id, `Added new user ${newUser.name} (${newUser.email}) with role '${newUser.role}'.`, "Medium");
           showToast(`নতুন ইউজার (${newUser.name}) যুক্ত হয়েছে`, "success");
-          if (state.appScriptUrl) {
-            postToAppsScript({ type: "ADD_USER", user: newUser, audit });
+          if (hasSupabaseCredentials()) {
+            sbUpsertRows(SB_TABLES.USERS, toDbUser(newUser)).catch(err => console.warn("Supabase user insert:", err));
           }
         }
 
@@ -3527,79 +4066,82 @@ function formatRows(data) {
         if (id && (!state.currentUser || state.currentUser.id !== id)) {
           const target = state.users.find(u => u.id === id);
           state.users = state.users.filter(u => u.id !== id);
-          const audit = recordAuditLog("USER_MANAGE", id, `Removed user ${target ? target.name : id}.`, "High");
+          recordAuditLog("USER_MANAGE", id, `Removed user ${target ? target.name : id}.`, "High");
           saveData();
           closeUserModal();
           render();
           showToast(`ইউজার ${id} মুছে ফেলা হয়েছে`, "info");
-          if (state.appScriptUrl) {
-            postToAppsScript({ type: "DELETE_USER", userId: id, audit });
+          if (hasSupabaseCredentials()) {
+            sbDeleteRow(SB_TABLES.USERS, id).catch(err => console.warn("Supabase user delete:", err));
           }
         }
       });
 
-      // Cloud Sheet Two-Way Sync Button
-      document.getElementById("syncBtn").addEventListener("click", () => {
+      // Supabase Live Sync Button
+      document.getElementById("syncBtn").addEventListener("click", async () => {
         if (!requireAuth()) return;
         const icon = document.getElementById("syncIcon");
         const text = document.getElementById("syncText");
         icon.classList.add("animate-spin");
         if (text) text.textContent = "সিঙ্ক হচ্ছে...";
 
-        if (state.appScriptUrl) {
-          fetch(state.appScriptUrl)
-            .then(res => res.json())
-            .then(data => {
-              if (data && data.status === "success") {
-                if (Array.isArray(data.tasks) && data.tasks.length > 0) {
-                  state.tasks = data.tasks.map(normalizeTask);
-                }
-                if (Array.isArray(data.updates) && data.updates.length > 0) {
-                  state.updates = data.updates.map(normalizeUpdate);
-                }
-                if (Array.isArray(data.auditLogs) && data.auditLogs.length > 0) {
-                  state.auditLogs = data.auditLogs.map(normalizeAudit);
-                }
-                if (Array.isArray(data.users) && data.users.length > 0) {
-                  state.users = data.users.map(normalizeUser);
-                }
-                saveData();
-                render();
-                showToast("ক্লাউড শিট থেকে লাইভ ডেটা সিঙ্ক সম্পন্ন হয়েছে!", "success");
-              } else {
-                showToast("শিট কানেকশন যাচাই সম্পন্ন (ক্যাশড মোড)", "info");
-              }
-            })
-            .catch(() => {
-              showToast("লোকাল ডাটাবেস আপডেট সংরক্ষিত রয়েছে", "info");
-            })
-            .finally(() => {
-              setTimeout(() => {
-                icon.classList.remove("animate-spin");
-                if (text) text.textContent = "সিঙ্ক";
-              }, 600);
-            });
+        if (hasSupabaseCredentials()) {
+          try {
+            await fetchAllFromSupabase(false);
+          } catch (e) {
+            // Toast already handled
+          } finally {
+            setTimeout(() => {
+              icon.classList.remove("animate-spin");
+              if (text) text.textContent = "সিঙ্ক";
+            }, 500);
+          }
         } else {
           setTimeout(() => {
             icon.classList.remove("animate-spin");
             if (text) text.textContent = "সিঙ্ক";
-            showToast("ডাটাবেস সম্পূর্ণ আপ-টু-ডেট!", "success");
-          }, 800);
+            showToast("লোকাল ডাটাবেস আপ-টু-ডেট! ক্লাউড সিঙ্কের জন্য সুপাবেস কনফিগ যুক্ত করুন।", "info", "Local Sync");
+          }, 500);
         }
       });
 
-      // Config URL Save (Admin Only)
-      document.getElementById("saveConfigBtn").addEventListener("click", () => {
+      // Supabase Config Save & Connect (Admin Only)
+      document.getElementById("saveConfigBtn").addEventListener("click", async () => {
         if (!requireAuth()) return;
         if (!getPerms().canManageSettings) {
-          showAlertPopup("অ্যাডমিন পারমিশন প্রয়োজন", "শুধুমাত্র Admin শিট কনফিগারেশন পরিবর্তন করতে পারবেন!", "error");
+          showAlertPopup("অ্যাডমিন পারমিশন প্রয়োজন", "শুধুমাত্র Admin সুপাবেস কনফিগারেশন পরিবর্তন করতে পারবেন!", "error");
           return;
         }
-        const url = document.getElementById("appScriptUrlInput").value.trim();
-        state.appScriptUrl = url;
-        recordAuditLog("CONFIG_CHANGE", "AppsScript_URL", `Updated Google Apps Script Web App endpoint configuration.`, "High");
+        const url = document.getElementById("supabaseUrlInput").value.trim().replace(/\/+$/, "");
+        const key = document.getElementById("supabaseKeyInput").value.trim();
+
+        if (!url || !key) {
+          showAlertPopup("তথ্য অসম্পূর্ণ", "অনুগ্রহ করে Supabase Project URL এবং Anon Public Key উভয়ই প্রদান করুন।", "error");
+          return;
+        }
+
+        state.supabaseUrl = url;
+        state.supabaseKey = key;
+        initSupabaseClient();
         saveData();
-        showToast("Apps Script Web App URL সংরক্ষিত হয়েছে!", "success");
+        recordAuditLog("CONFIG_CHANGE", "Supabase_Config", `Updated Supabase PostgreSQL project endpoint (${url}).`, "High");
+        showToast("Supabase কনফিগারেশন সংরক্ষিত হয়েছে! কানেকশন যাচাই হচ্ছে...", "success");
+        await runConnectionDiagnostic();
+      });
+
+      // Clear Supabase Config Button (Admin Only)
+      document.getElementById("clearConfigBtn").addEventListener("click", () => {
+        if (!requireAuth() || !getPerms().canManageSettings) return;
+        state.supabaseUrl = "";
+        state.supabaseKey = "";
+        state.isSupabaseConnected = false;
+        supabaseClient = null;
+        document.getElementById("supabaseUrlInput").value = "";
+        document.getElementById("supabaseKeyInput").value = "";
+        document.getElementById("connectionDiagBox").classList.add("hidden");
+        saveData();
+        updateConnectionBadges();
+        showToast("সুপাবেস কনফিগারেশন মুছে লোকাল মোডে ফিরে যাওয়া হয়েছে", "info");
       });
 
       // Reset Demo Data Button (Admin Only)
@@ -3611,36 +4153,48 @@ function formatRows(data) {
         state.users = INITIAL_USERS.map(u => ({ ...u }));
         saveData();
         render();
-        showToast("ডিফল্ট ডাটা রিস্টোর সম্পন্ন হয়েছে!", "success");
+        showToast("ডিফল্ট ডেমো ডাটা রিস্টোর সম্পন্ন হয়েছে!", "success");
       });
 
-      // Copy Apps Script Code (Admin Only)
+      // Copy Supabase SQL Script (Admin Only)
       document.getElementById("copyScriptBtn").addEventListener("click", () => {
         if (!requireAuth()) return;
         if (!getPerms().canManageSettings) {
-          showAlertPopup("অ্যাডমিন পারমিশন প্রয়োজন", "শুধুমাত্র Admin ইন্টিগ্রেশন কোড কপি করতে পারবেন।", "error");
+          showAlertPopup("অ্যাডমিন পারমিশন প্রয়োজন", "শুধুমাত্র Admin SQL কোড কপি করতে পারবেন।", "error");
           return;
         }
-        const code = document.getElementById("appsScriptCodeBlock").innerText;
+        const code = document.getElementById("supabaseSqlCodeBlock").innerText;
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(code).then(() => {
-            showToast("Apps Script কোড ক্লিপবোর্ডে কপি হয়েছে!", "success");
+            showToast("Supabase SQL স্ক্রিপ্ট ক্লিপবোর্ডে কপি হয়েছে!", "success");
+          }).catch(() => {
+            fallbackCopyText(code);
           });
         } else {
-          const ta = document.createElement("textarea");
-          ta.value = code;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-          showToast("Apps Script কোড ক্লিপবোর্ডে কপি হয়েছে!", "success");
+          fallbackCopyText(code);
         }
+      });
+
+      // Download .sql File Button
+      document.getElementById("downloadSqlBtn").addEventListener("click", () => {
+        if (!requireAuth() || !getPerms().canManageSettings) return;
+        const code = document.getElementById("supabaseSqlCodeBlock").innerText;
+        const blob = new Blob([code], { type: "text/sql;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "supabase_setup.sql");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast("supabase_setup.sql ডাউনলোড শুরু হয়েছে", "success");
       });
 
       // Export Tasks CSV (Requires Auth)
       document.getElementById("exportCsvBtn").addEventListener("click", () => {
         if (!requireAuth()) return;
-        const headers = ["Task_ID", "Title", "Website_Page", "Category", "Status", "Priority", "Assigned_To", "Release_Version", "Due_Date", "Last_Updated", "Notes"];
+        const headers = ["id", "title", "page", "category", "status", "priority", "assigned_to", "version", "due_date", "last_updated", "notes"];
         const rows = state.tasks.map(t => [
           t.id,
           `"${(t.title || '').replace(/"/g, '""')}"`,
@@ -3659,7 +4213,7 @@ function formatRows(data) {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "website_tasks_export.csv");
+        link.setAttribute("download", "supabase_tasks_export.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -3669,7 +4223,7 @@ function formatRows(data) {
       // Export Audit Logs CSV (Requires Auth + Audit Permission)
       document.getElementById("exportAuditCsvBtn").addEventListener("click", () => {
         if (!requireAuth() || !getPerms().canViewAudit) return;
-        const headers = ["Log_ID", "Timestamp", "User_Name", "User_Role", "Action_Type", "Target_Item", "Details_Log", "Severity"];
+        const headers = ["id", "timestamp", "user_name", "user_role", "action_type", "target_item", "details", "severity"];
         const rows = state.auditLogs.map(a => [
           a.id,
           `"${a.timestamp || ''}"`,
@@ -3685,7 +4239,7 @@ function formatRows(data) {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "website_audit_logs.csv");
+        link.setAttribute("download", "supabase_audit_logs.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -3693,18 +4247,14 @@ function formatRows(data) {
       });
     });
 
-    function postToAppsScript(payload) {
-      if (!state.appScriptUrl || !isAuthenticated()) return;
-      try {
-        fetch(state.appScriptUrl, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }).catch(err => console.log("Sync status:", err));
-      } catch (err) {
-        console.error(err);
-      }
+    function fallbackCopyText(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      showToast("Supabase SQL স্ক্রিপ্ট ক্লিপবোর্ডে কপি হয়েছে!", "success");
     }
   </script>
 </body>
